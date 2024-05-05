@@ -101,22 +101,43 @@ function draw() {
 
   _lastMouseRotate = _curMouseRotate;
   
+  
   push();
+  textSize(100);
+  translate(-150,0,0);
+  rotateY(radians(90));
+  fill("blue");
+  text("x", 0, 0);
+  pop(); 
+
+  push();
+  textSize(100);
   translate(0,0,150);
   fill("red")
-  circle(0, 100, 15);
+  text("z", 0, 0);
   pop(); 
   
   push();
+  textSize(100);
   fill("green")
-  translate(0, 50, 0);
-  rotateX(radians(270));
-  rectMode(CENTER);
-  text("bottom", 0, 0);
+  translate(0, 150, 0);
+  rotateX(radians(90));
+  text("y", 0, 0);
   // circle(0, 100, 15);
   pop(); 
   
-  // rotateY(radians(_boxx));
+  push();
+  fill("white");
+  rotateY(radians(_boxx));
   box(100, 90);
-  // _boxx = (_boxx + 1) % 360 ;
+  _boxx = (_boxx + 1) % 360 ;
+  pop();
+}
+
+function keyPressed() {
+  if (keyCode === 32) {
+    ortho();
+  }
+  // Uncomment to prevent any default behavior.
+  return false;
 }
