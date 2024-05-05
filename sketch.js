@@ -20,87 +20,8 @@ function setup() {
   textSize(36);
 }
 
-/**
- * Rotates the camera around the Y axis.
- * Credit to this video https://youtu.be/E9MnSQ9_hk0
- * @param {Number} theta rotation 
- * @param {p5.Vector} cameraPos position of camera
- * @param {p5.Vector} center point the camera is pointing at
- * @param {Number} radius camera distance from center
- */
-function rotateCameraAroundPointY(theta, cameraPos, center, radius) {
-  let t = radians(theta);
-  // console.log(t);
-  // console.log(cameraPos);
-  let x = ((cameraPos.x - center.x) * cos(t)) - ((cameraPos.z - center.z) * sin(t)) + center.x;
-  let z = ((cameraPos.x - center.x) * sin(t)) + ((cameraPos.z - center.z) * cos(t)) + center.y;
-  let y = cameraPos.y; // + radius * math.sin(rad);
-  // console.log("x:" + x + " y: " + y + " z: " + z);
-  let newCameraPos = createVector(x, y, z);
-  // console.log(res);
-  camera(newCameraPos.x, newCameraPos.y, newCameraPos.z);
-  _lastCameraPos = newCameraPos;
-}
 
-function rotateCameraAroundPointX(theta, cameraPos, center, radius) {
-  let t = radians(theta);
-  // console.log(t);
-  // console.log(cameraPos);
-  let y = ((cameraPos.y - center.y) * cos(t)) - ((cameraPos.z - center.z) * sin(t)) + center.x;
-  let z = ((cameraPos.y - center.y) * sin(t)) + ((cameraPos.z - center.z) * cos(t)) + center.y;
-  let x = cameraPos.x; // + radius * math.sin(rad);
-  // console.log("x:" + x + " y: " + y + " z: " + z);
-  let newCameraPos = createVector(x, y, z);
-  // console.log(res);
-  camera(newCameraPos.x, newCameraPos.y, newCameraPos.z);
-  _lastCameraPos = newCameraPos;
-}
-
-/**
- * Will rotate the camera around the Y axis
- * speed multiplier * 
- * @param {Number} speed 
- */
-function rotateCameraAroundOrigin(speed) {
-  rotateCameraAroundPointY(ROTATE_CAMERA_SPEED * speed, _lastCameraPos, createVector(0,0,0), 800);
-}
-
-function draw() {
-  clear();
-  background(220);
-  
-  _curMouseRotate = (mouseX / width) * 360;
-//   // let x = _curMouseRotate * cos(frameCount * 0.01);
-  
-  // if (_lastMouseRotate !== _curMouseRotate) {
-  //   console.log(_curMouseRotate)
-  //   let newCameraPos = rotateCameraAroundPoint(-_curMouseRotate, _lastCameraPos, createVector(0,0,0), 800);
-  //   camera(newCameraPos.x, newCameraPos.y, newCameraPos.z);
-  //   _lastCameraPos = newCameraPos;
-    
-  // }
-
-  let mouseVelx = mouseX - pmouseX;
-  let mouseVely = mouseY - pmouseY;
-  if ((mouseVelx !== 0 || mouseVely !== 0) && mouseIsPressed) {
-    rotateCameraAroundPointY(ROTATE_CAMERA_SPEED * mouseVelx, _lastCameraPos, createVector(0,0,0), 800);
-    rotateCameraAroundPointX(ROTATE_CAMERA_SPEED * mouseVely, _lastCameraPos, createVector(0,0,0), 800);
-    // rotateCameraAroundOrigin(mouseVelx);
-    // console.log("mouse move xvel: " + mouseVelx);
-  }
-  
-  if (keyIsDown(RIGHT_ARROW)) {
-    console.log("right");
-    rotateCameraAroundOrigin()
-  } else if (keyIsDown(LEFT_ARROW)) {
-    console.log("left");
-    let newCameraPos = rotateCameraAroundPointY(-ROTATE_CAMERA_SPEED, _lastCameraPos, createVector(0,0,0), 800);
-    camera(newCameraPos.x, newCameraPos.y, newCameraPos.z);
-    _lastCameraPos = newCameraPos;
-  }
-
-  _lastMouseRotate = _curMouseRotate;
-  
+function drawDebugAxis() {
   
   push();
   textSize(100);
@@ -123,15 +44,116 @@ function draw() {
   translate(0, 150, 0);
   rotateX(radians(90));
   text("y", 0, 0);
-  // circle(0, 100, 15);
   pop(); 
   
+}
+
+/**
+ * Rotates the camera around the point's Y axis.
+ * Credit to this video https://youtu.be/E9MnSQ9_hk0
+ * @param {Number} theta rotation 
+ * @param {p5.Vector} point point the camera is pointing at
+ */
+function rotateCameraAroundPointY(theta, point) {
+  let t = radians(theta);
+  let cameraPos = _lastCameraPos;
+  // console.log(t);
+  // console.log(cameraPos);
+  let x = ((cameraPos.x - point.x) * cos(t)) - ((cameraPos.z - point.z) * sin(t)) + point.x;
+  let z = ((cameraPos.x - point.x) * sin(t)) + ((cameraPos.z - point.z) * cos(t)) + point.y;
+  let y = cameraPos.y; // + radius * math.sin(rad);
+  // console.log("x:" + x + " y: " + y + " z: " + z);
+  let newCameraPos = createVector(x, y, z);
+  // console.log(res);
+  camera(newCameraPos.x, newCameraPos.y, newCameraPos.z);
+  _lastCameraPos = newCameraPos;
+  return _lastCameraPos;
+}
+
+/**
+ * Rotates the camera around the point's X axis.
+ * Credit to this video https://youtu.be/E9MnSQ9_hk0
+ * @param {Number} theta rotation 
+ * @param {p5.Vector} point point the camera is pointing at
+ */
+function rotateCameraAroundPointX(theta, point) {
+  let t = radians(theta);
+  let cameraPos = _lastCameraPos;
+  // console.log(t);
+  // console.log(cameraPos);
+  let y = ((cameraPos.y - point.y) * cos(t)) - ((cameraPos.z - point.z) * sin(t)) + point.x;
+  let z = ((cameraPos.y - point.y) * sin(t)) + ((cameraPos.z - point.z) * cos(t)) + point.y;
+  let x = cameraPos.x; // + radius * math.sin(rad);
+  // console.log("x:" + x + " y: " + y + " z: " + z);
+  let newCameraPos = createVector(x, y, z);
+  // console.log(res);
+  camera(newCameraPos.x, newCameraPos.y, newCameraPos.z);
+  _lastCameraPos = newCameraPos;
+  return _lastCameraPos;
+}
+
+/**
+ * Will rotate the camera around the Y axis
+ * using theta.
+ * @param {Number} theta rotation 
+ */
+function rotateCameraAroundOriginY(theta) {
+  rotateCameraAroundPointY(theta, createVector(0,0,0));
+}
+
+/**
+ * Will rotate the camera around the Y axis
+ * using theta.
+ * @param {Number} theta rotation 
+ */
+function rotateCameraAroundOriginX(theta) {
+  rotateCameraAroundPointX(theta, createVector(0,0,0));
+}
+
+function draw() {
+  clear();
+  background(220);
+ 
+  checkCameraControls();
+
+  // _lastMouseRotate = _curMouseRotate;
+  
+  drawDebugAxis();
+
   push();
   fill("white");
   rotateY(radians(_boxx));
   box(100, 90);
   _boxx = (_boxx + 1) % 360 ;
   pop();
+}
+
+function checkCameraControls() {
+  let mouseVelx = mouseX - pmouseX;
+  let mouseVely = mouseY - pmouseY;
+  if ((mouseVelx !== 0 || mouseVely !== 0) && mouseIsPressed) {
+    // rotateCameraAroundPointY(mouseVelx, createVector(0,0,0));
+    // rotateCameraAroundPointX(mouseVely, createVector(0,0,0));
+    // rotateCameraAroundOrigin(mouseVelx);
+
+    rotateCameraAroundOriginX(mouseVely);
+    rotateCameraAroundOriginY(mouseVelx);
+    // console.log("mouse move xvel: " + mouseVelx);
+  }
+  
+  if (keyIsDown(RIGHT_ARROW)) {
+    console.log("right");
+    rotateCameraAroundOriginY(1)
+  } else if (keyIsDown(LEFT_ARROW)) {
+    console.log("left");
+    rotateCameraAroundOriginY(-1);
+  } else if (keyIsDown(UP_ARROW)) {
+    console.log("up");
+    rotateCameraAroundOriginX(1)
+  } else if (keyIsDown(DOWN_ARROW)) {
+    console.log("down");
+    rotateCameraAroundOriginX(-1);
+  }
 }
 
 function keyPressed() {
