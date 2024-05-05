@@ -5,7 +5,8 @@ let _boxx = 0;
 let _boxy = 0;
 let _curMouseRotate = 0; // current rotation along the y axis mapped to mouseX  
 let _lastMouseRotate = 0;
-let _lastCameraPos;
+let _lastCameraPos; // 1st vector of camera(), the position in 3d space 
+let _lastCameraPoint; // 2nd vector of camera(), position camera is pointing at
 
 let myFont;
 function preload() {
@@ -16,6 +17,7 @@ function setup() {
   createCanvas(640, 480, WEBGL);
   frameRate(60); // 24 is stop-motion
   _lastCameraPos = createVector(0, 0, 800);
+  _lastCameraPoint = createVector(0, 0, 0);
   textFont(myFont);
   textSize(36);
 }
@@ -113,10 +115,9 @@ function rotateCameraAroundOriginX(theta) {
 function draw() {
   clear();
   background(220);
- 
-  checkCameraControls();
-
-  // _lastMouseRotate = _curMouseRotate;
+        
+  drawCamera();
+        
   
   drawDebugAxis();
 
@@ -128,7 +129,36 @@ function draw() {
   pop();
 }
 
-function checkCameraControls() {
+function drawCamera() {
+  // draw camera point indicator
+  push();
+  rectMode(CENTER);
+  rotateX(radians(90));
+  fill("magenta");
+  translate(_lastCameraPoint.x, _lastCameraPoint.z, 0);
+  text("camerapoint", 0, 0);
+  // rect(0, 0, 10, 10);
+  pop();
+
+  if (keyIsDown(RIGHT_ARROW)) {
+    // console.log("move camera right");
+    _lastCameraPoint.x++; 
+  }
+  if (keyIsDown(LEFT_ARROW)) {
+    // console.log("move camera left");
+    _lastCameraPoint.x--; 
+  }
+  if (keyIsDown(UP_ARROW)) {
+    // console.log("move camera up");
+    _lastCameraPoint.z--; 
+  }
+  if (keyIsDown(DOWN_ARROW)) {
+    // console.log("move camera down");
+    _lastCameraPoint.z++; 
+  }
+  camera(_lastCameraPos.x, _lastCameraPos.y, _lastCameraPos.z,
+          _lastCameraPoint.x, _lastCameraPoint.y, _lastCameraPoint.z);
+
   let mouseVelx = mouseX - pmouseX;
   let mouseVely = mouseY - pmouseY;
   if ((mouseVelx !== 0 || mouseVely !== 0) && mouseIsPressed) {
@@ -141,19 +171,19 @@ function checkCameraControls() {
     // console.log("mouse move xvel: " + mouseVelx);
   }
   
-  if (keyIsDown(RIGHT_ARROW)) {
-    console.log("right");
-    rotateCameraAroundOriginY(1)
-  } else if (keyIsDown(LEFT_ARROW)) {
-    console.log("left");
-    rotateCameraAroundOriginY(-1);
-  } else if (keyIsDown(UP_ARROW)) {
-    console.log("up");
-    rotateCameraAroundOriginX(1)
-  } else if (keyIsDown(DOWN_ARROW)) {
-    console.log("down");
-    rotateCameraAroundOriginX(-1);
-  }
+  // if (keyIsDown(RIGHT_ARROW)) {
+  //   console.log("right");
+  //   rotateCameraAroundOriginY(1)
+  // } else if (keyIsDown(LEFT_ARROW)) {
+  //   console.log("left");
+  //   rotateCameraAroundOriginY(-1);
+  // } else if (keyIsDown(UP_ARROW)) {
+  //   console.log("up");
+  //   rotateCameraAroundOriginX(1)
+  // } else if (keyIsDown(DOWN_ARROW)) {
+  //   console.log("down");
+  //   rotateCameraAroundOriginX(-1);
+  // }
 }
 
 function keyPressed() {
