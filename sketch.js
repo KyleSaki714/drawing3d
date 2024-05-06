@@ -1,5 +1,5 @@
 
-const ROTATE_CAMERA_SPEED = 1;
+const CAMERA_NUDGE_SPEED = 3;
 
 let _boxx = 0;
 let _boxy = 0;
@@ -7,10 +7,15 @@ let _curMouseRotate = 0; // current rotation along the y axis mapped to mouseX
 let _lastMouseRotate = 0;
 let _lastCameraPos; // 1st vector of camera(), the position in 3d space 
 let _lastCameraPoint; // 2nd vector of camera(), position camera is pointing at
+let _cameraIsPerspective; // default is false, perspective mode is true;
 
 let myFont;
+let colors;
+let paletteText;
 function preload() {
   myFont = loadFont("resources/Litebulb 8-bit.ttf");
+  colors = [];
+  paletteText = loadStrings("resources/pico-8.txt", loadPalette);
 }
 
 function setup() {
@@ -20,8 +25,18 @@ function setup() {
   _lastCameraPoint = createVector(0, 0, 0);
   textFont(myFont);
   textSize(36);
+  _cameraIsPerspective = false;
 }
 
+function loadPalette(paletteFile) {
+  for (const hex of paletteFile) {
+    let char = hex[0];
+    if (char !== ";" && char !== undefined) {
+      colors.push(hex);
+    }
+  }
+  console.log(colors);
+}
 
 function drawDebugAxis() {
   
@@ -142,19 +157,23 @@ function drawCamera() {
 
   if (keyIsDown(RIGHT_ARROW)) {
     // console.log("move camera right");
-    _lastCameraPoint.x++; 
+    _lastCameraPos.x += CAMERA_NUDGE_SPEED;
+    _lastCameraPoint.x += CAMERA_NUDGE_SPEED; 
   }
   if (keyIsDown(LEFT_ARROW)) {
     // console.log("move camera left");
-    _lastCameraPoint.x--; 
+    _lastCameraPos.x -= CAMERA_NUDGE_SPEED;
+    _lastCameraPoint.x -= CAMERA_NUDGE_SPEED; 
   }
   if (keyIsDown(UP_ARROW)) {
     // console.log("move camera up");
-    _lastCameraPoint.z--; 
+    _lastCameraPos.z -= CAMERA_NUDGE_SPEED;
+    _lastCameraPoint.z -= CAMERA_NUDGE_SPEED; 
   }
   if (keyIsDown(DOWN_ARROW)) {
     // console.log("move camera down");
-    _lastCameraPoint.z++; 
+    _lastCameraPos.z += CAMERA_NUDGE_SPEED;
+    _lastCameraPoint.z += CAMERA_NUDGE_SPEED; 
   }
   camera(_lastCameraPos.x, _lastCameraPos.y, _lastCameraPos.z,
           _lastCameraPoint.x, _lastCameraPoint.y, _lastCameraPoint.z);
@@ -188,7 +207,13 @@ function drawCamera() {
 
 function keyPressed() {
   if (keyCode === 32) {
-    ortho();
+    _cameraIsPerspective = !_cameraIsPerspective;
+    
+    if (_cameraIsPerspective) {
+      perspective();
+    } else {
+      ortho();
+    }
   }
   // Uncomment to prevent any default behavior.
   return false;
