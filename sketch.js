@@ -1,17 +1,31 @@
+/**
+ * Kyle Santos
+ * CSE 493F A3: Input Devices and P5JS
+ * Drawin' 3D!
+ * A 3d pixel drawing app. Inspired by Warioware DIY and Mario Paint. 
+ */
 
-const CAMERA_NUDGE_SPEED = 3;
+let DRAWGRID = true;
+
+const GRID_SIZE = 16; // how many cells there are, CELL_SIZE ^ 3.
+const CELL_SIZE = 32; // how big pixels are, CELL_SIZE x CELL_SIZE x CELL_SIZE. 
+const CAMERA_NUDGE_SPEED = 3; // nudgin the camera with arrow keys
+let CAMERA_RESET; // assigned at setup, cant use const?
+let CAMERA_ORIGIN;
 
 let _boxx = 0;
 let _boxy = 0;
-let _curMouseRotate = 0; // current rotation along the y axis mapped to mouseX  
-let _lastMouseRotate = 0;
+let _curMouseRotate = 0; // current rotation along the y axis mapped to mouseX
 let _lastCameraPos; // 1st vector of camera(), the position in 3d space 
 let _lastCameraPoint; // 2nd vector of camera(), position camera is pointing at
 let _cameraIsPerspective; // default is false, perspective mode is true;
 
+let _lastBrushPos;
+
 let myFont;
 let colors;
 let paletteText;
+
 function preload() {
   myFont = loadFont("resources/Litebulb 8-bit.ttf");
   colors = [];
@@ -20,12 +34,21 @@ function preload() {
 
 function setup() {
   createCanvas(640, 480, WEBGL);
-  frameRate(60); // 24 is stop-motion
-  _lastCameraPos = createVector(0, 0, 800);
-  _lastCameraPoint = createVector(0, 0, 0);
+  frameRate(30); // 24 is stop-motion
+  // _lastCameraPos = createVector(0, 0, 800);
+  CAMERA_RESET = createVector(
+    -507.1917665750024,
+    -376.91156923843215,
+    490.60593238642537
+  );
+  CAMERA_ORIGIN = createVector(0, 0, 0);
+  _lastCameraPos = CAMERA_RESET;
+  _lastCameraPoint = CAMERA_ORIGIN;
+  _lastBrushPos = CAMERA_ORIGIN;
   textFont(myFont);
   textSize(36);
   _cameraIsPerspective = false;
+  ortho();
 }
 
 function loadPalette(paletteFile) {
@@ -130,29 +153,110 @@ function rotateCameraAroundOriginX(theta) {
 function draw() {
   clear();
   background(220);
-        
+  
+  let currBrushPos = snapToGrid(_lastCameraPoint); // This will be set from potentiometers later
+  
+  
+  if (!currBrushPos.equals(_lastBrushPos)) {
+    console.log(currBrushPos);
+  }
+  
   drawCamera();
-        
+  
+  drawGrid(currBrushPos);
   
   drawDebugAxis();
+  
+  _lastBrushPos = currBrushPos;
+  // draw test box!!! spinning!!!
+  // push();
+  // fill("white");
+  // rotateY(radians(_boxx));
+  // box(100, 90);
+  // _boxx = (_boxx + 1) % 360 ;
+  // pop();
+}
 
+/**
+ * Given the current position, snaps it to the grid. uses CELL_SIZE.
+ * @param {p5.Vector} currentPos
+ * @returns {p5.Vector} snapped position
+ */
+function snapToGrid(currentPos) {
+  let snapx = round((currentPos.x - CELL_SIZE /2) / CELL_SIZE) * CELL_SIZE;
+  let snapy = round((currentPos.y - CELL_SIZE /2) / CELL_SIZE) * CELL_SIZE;
+  let snapz = round((currentPos.z - CELL_SIZE /2) / CELL_SIZE) * CELL_SIZE;
+  
+  return createVector(snapx, snapy, snapz);
+}
+
+function drawGrid(currBrushPos) {
+  if (DRAWGRID) {
+    push();
+    fill("SlateBlue");
+    // creates z-x grid
+    // along z
+    for (let i = 0; i <= GRID_SIZE; i++) {
+      line(i * CELL_SIZE, 0, 0, i * CELL_SIZE, 0, CELL_SIZE * GRID_SIZE);
+    }
+    // along x
+    for (let i = 0; i <= GRID_SIZE; i++) {
+      line(0, 0, i * CELL_SIZE, CELL_SIZE * GRID_SIZE, 0, i * CELL_SIZE);
+    }
+    // creates xy grid
+    // along y
+    for (let i = 0; i <= GRID_SIZE; i++) {
+      line(i * CELL_SIZE, 0, 0, i * CELL_SIZE, -CELL_SIZE * GRID_SIZE, 0);
+    }
+    for (let i = 0; i <= GRID_SIZE; i++) {
+      line(0, i * -CELL_SIZE, 0, CELL_SIZE * GRID_SIZE, i * -CELL_SIZE, 0);
+    }
+    // creates zy grid
+    // along y
+    for (let i = 0; i <= GRID_SIZE; i++) {
+      line(0, 0, i * CELL_SIZE, 0, -CELL_SIZE * GRID_SIZE, i * CELL_SIZE);
+    }
+    // lines along z
+    for (let i = 0; i <= GRID_SIZE; i++) {
+      line(0, i * -CELL_SIZE, 0, 0, i * -CELL_SIZE, CELL_SIZE * GRID_SIZE);
+    }
+    pop();
+  }
+  
+  // fill grid cursor
   push();
-  fill("white");
-  rotateY(radians(_boxx));
-  box(100, 90);
-  _boxx = (_boxx + 1) % 360 ;
+  fill(246,237,195,200);
+  rotateX(radians(90));
+  // translate(currBrushPos.x, currBrushPos.z, -currBrushPos.y);
+  translate(currBrushPos.x, currBrushPos.z, 0);
+  rect(0, 0, CELL_SIZE, CELL_SIZE);
+  pop();
+  push();
+  fill(246,237,195,200);
+  // rotateX(radians(90));
+  // translate(currBrushPos.x, currBrushPos.z, -currBrushPos.y);
+  translate(currBrushPos.x, currBrushPos.y - CELL_SIZE, 0);
+  rect(0, 0, CELL_SIZE, CELL_SIZE);
+  pop();
+  push();
+  fill(246,237,195,200);
+  // translate(currBrushPos.x, currBrushPos.z, -currBrushPos.y);
+  translate(0, currBrushPos.y - CELL_SIZE, currBrushPos.z);
+  rotateY(radians(-90));
+  rect(0, 0, CELL_SIZE, CELL_SIZE);
   pop();
 }
 
 function drawCamera() {
+  
   // draw camera point indicator
   push();
   rectMode(CENTER);
   rotateX(radians(90));
-  fill("magenta");
-  translate(_lastCameraPoint.x, _lastCameraPoint.z, 0);
-  text("camerapoint", 0, 0);
-  // rect(0, 0, 10, 10);
+  fill("gray");
+  translate(_lastCameraPoint.x, _lastCameraPoint.z, -_lastCameraPoint.y);
+  circle(0, 0, 10);
+  // text("camerapoint", 0, 0);
   pop();
 
   if (keyIsDown(RIGHT_ARROW)) {
@@ -174,6 +278,14 @@ function drawCamera() {
     // console.log("move camera down");
     _lastCameraPos.z += CAMERA_NUDGE_SPEED;
     _lastCameraPoint.z += CAMERA_NUDGE_SPEED; 
+  }
+  if (keyIsDown(32)) {
+    _lastCameraPos.y -= CAMERA_NUDGE_SPEED;
+    _lastCameraPoint.y -= CAMERA_NUDGE_SPEED; 
+  }
+  if (keyIsDown(16)) {
+    _lastCameraPos.y += CAMERA_NUDGE_SPEED;
+    _lastCameraPoint.y += CAMERA_NUDGE_SPEED; 
   }
   camera(_lastCameraPos.x, _lastCameraPos.y, _lastCameraPos.z,
           _lastCameraPoint.x, _lastCameraPoint.y, _lastCameraPoint.z);
@@ -206,7 +318,8 @@ function drawCamera() {
 }
 
 function keyPressed() {
-  if (keyCode === 32) {
+  // "p" for perspective
+  if (keyCode === 80) {
     _cameraIsPerspective = !_cameraIsPerspective;
     
     if (_cameraIsPerspective) {
@@ -214,6 +327,16 @@ function keyPressed() {
     } else {
       ortho();
     }
+  }
+  // "z" for zlog the last camera position
+  if (keyCode === 90) {
+    console.log(_lastCameraPos);
+    console.log(_lastCameraPoint);
+  }
+  // "r" for reset camera
+  if (keyCode === 82) {
+    _lastCameraPos = CAMERA_RESET;
+    _lastCameraPoint = CAMERA_ORIGIN;
   }
   // Uncomment to prevent any default behavior.
   return false;
