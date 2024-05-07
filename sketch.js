@@ -172,6 +172,7 @@ function draw() {
   drawGrid();
   drawGridCursor(currBrushPos);
   
+  //drawPixel(currBrushPos);
   
   _lastBrushPos = currBrushPos;
   // draw test box!!! spinning!!!
@@ -181,6 +182,7 @@ function draw() {
   // box(100, 90);
   // _boxx = (_boxx + 1) % 360 ;
   // pop();
+  
 }
 
 /**
@@ -256,27 +258,56 @@ function drawGrid() {
 }
 
 function drawGridCursor(currBrushPos) {
-  // fill grid cursor
+  // grid cursor
   push();
-  fill(246,237,195,200);
+  // CELL SIZE OFFSET
+  translate(CELL_SIZE / 2, CELL_SIZE / 2, CELL_SIZE / 2);
+  translate(currBrushPos.x, currBrushPos.y, currBrushPos.z);
+  box(CELL_SIZE, CELL_SIZE);
+  pop();
+  
+  // XZ PLANE
+  push();
+  noStroke();
+  fill(246,237,195,128);
   rotateX(radians(90));
   // translate(currBrushPos.x, currBrushPos.z, -currBrushPos.y);
   translate(currBrushPos.x, currBrushPos.z, 0);
   rect(0, 0, CELL_SIZE, CELL_SIZE);
   pop();
+  
+  // XY PLANE
   push();
+  noStroke();
   fill(246,237,195,200);
   // rotateX(radians(90));
   // translate(currBrushPos.x, currBrushPos.z, -currBrushPos.y);
-  translate(currBrushPos.x, currBrushPos.y - CELL_SIZE, 0);
+  translate(currBrushPos.x, currBrushPos.y, 0);
   rect(0, 0, CELL_SIZE, CELL_SIZE);
   pop();
+  
+  // YZ PLANE
   push();
+  noStroke();
   fill(246,237,195,200);
   // translate(currBrushPos.x, currBrushPos.z, -currBrushPos.y);
-  translate(0, currBrushPos.y - CELL_SIZE, currBrushPos.z);
+  translate(0, currBrushPos.y, currBrushPos.z);
   rotateY(radians(-90));
   rect(0, 0, CELL_SIZE, CELL_SIZE);
+  pop();
+}
+
+/**
+ * Draws a box at the specified position.
+ * Uses the fill color that was set previously.
+ * @param {p5.Vector} coord x, y, z coordinate
+ */
+function drawPixel(coord) {
+  push();
+  // CELL SIZE OFFSET
+  translate(CELL_SIZE / 2, CELL_SIZE / 2, CELL_SIZE / 2);
+  translate(coord.x, coord.y, coord.z);
+  box(CELL_SIZE, CELL_SIZE);
   pop();
 }
 
