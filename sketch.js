@@ -24,12 +24,13 @@ let _cameraIsPerspective; // default is false, perspective mode is true;
 let _lastBrushPos;
 
 let myFont;
-let colors;
+let _myColors; // colors available to draw in. read in on preload()
 let paletteText;
+let _pixelsDrawn; // Map (p5.Vector => p5.Color[])
 
 function preload() {
   myFont = loadFont("resources/Litebulb 8-bit.ttf");
-  colors = [];
+  _myColors = [];
   paletteText = loadStrings("resources/pico-8.txt", loadPalette);
 }
 
@@ -54,16 +55,17 @@ function setup() {
   textSize(36);
   _cameraIsPerspective = false;
   ortho();
+  __pixelsDrawn = new Map();
 }
 
 function loadPalette(paletteFile) {
   for (const hex of paletteFile) {
     let char = hex[0];
     if (char !== ";" && char !== undefined) {
-      colors.push(hex);
+      _myColors.push(hex);
     }
   }
-  console.log(colors);
+  console.log(_myColors);
 }
 
 function drawAxisNames() {
@@ -172,7 +174,7 @@ function draw() {
   drawGrid();
   drawGridCursor(currBrushPos);
   
-  //drawPixel(currBrushPos);
+  //addPixel(currBrushPos);
   
   _lastBrushPos = currBrushPos;
   // draw test box!!! spinning!!!
@@ -298,17 +300,36 @@ function drawGridCursor(currBrushPos) {
 }
 
 /**
- * Draws a box at the specified position.
+ * Adds a pixel to the canvas.
  * Uses the fill color that was set previously.
  * @param {p5.Vector} coord x, y, z coordinate
  */
-function drawPixel(coord) {
-  push();
-  // CELL SIZE OFFSET
-  translate(CELL_SIZE / 2, CELL_SIZE / 2, CELL_SIZE / 2);
-  translate(coord.x, coord.y, coord.z);
-  box(CELL_SIZE, CELL_SIZE);
-  pop();
+function addPixel(coord) {
+  
+  // check if there is already a coordinate in _drawnPixels
+  let possibleColor = _pixelsDrawn = get(coord);
+  
+  // if not, set a new position entry with a new color array
+  
+  // add the color to the array
+  
+}
+
+/**
+ * Using _drawnPixels, draws all the pixels added to the canvas.
+ */
+function drawPixels() {
+  for (const pos of _pixelsDrawn.keys()) {
+    for (const color of _pixelsDrawn.get(pos)) {
+      push();
+      fill(color)
+      // CELL SIZE OFFSET
+      translate(CELL_SIZE / 2, CELL_SIZE / 2, CELL_SIZE / 2);
+      translate(pos.x, pos.y, pos.z);
+      box(CELL_SIZE, CELL_SIZE);
+      pop();
+    }
+  }  
 }
 
 function drawCamera() {
