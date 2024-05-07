@@ -21,8 +21,9 @@ let _lastCameraPos; // 1st vector of camera(), the position in 3d space
 let _lastCameraPoint; // 2nd vector of camera(), position camera is pointing at
 let _cameraIsPerspective; // default is false, perspective mode is true;
 
+let _firstPixelPlaced;
 let _lastBrushPos;
-
+let _currentFillColor;
 let myFont;
 let _myColors; // colors available to draw in. read in on preload()
 let paletteText;
@@ -36,7 +37,7 @@ function preload() {
 
 function setup() {
   createCanvas(640, 480, WEBGL);
-  frameRate(60); // 24 is stop-motion
+  frameRate(30); // 24 is stop-motion
   // _lastCameraPos = createVector(0, 0, 800);
   CAMERA_RESET = createVector(
     719.1626069130599,
@@ -55,7 +56,9 @@ function setup() {
   textSize(36);
   _cameraIsPerspective = false;
   ortho();
-  __pixelsDrawn = new Map();
+  _currentFillColor = color(0, 0, 0);
+  _pixelsDrawn = new Map();
+  _firstPixelPlaced = false;
 }
 
 function loadPalette(paletteFile) {
@@ -162,21 +165,23 @@ function draw() {
   background(BACKGROUND_COLOR);
   
   let currBrushPos = snapToGrid(_lastCameraPoint); // This will be set from potentiometers later
-  
-  
-  if (!currBrushPos.equals(_lastBrushPos)) {
-    console.log(currBrushPos);
-  }
+  console.log("currBrushPos: " + currBrushPos);
   
   drawCamera();
   
   drawAxisNames();
   drawGrid();
-  drawGridCursor(currBrushPos);
+  drawGridCursor(currBrushPos);  
   
-  //addPixel(currBrushPos);
+  if (keyIsDown(90)) {
+    addPixel(currBrushPos);
+  } 
   
-  _lastBrushPos = currBrushPos;
+  drawPixels();
+  // if (!currBrushPos.equals(_lastBrushPos)) {
+  //   _lastBrushPos = currBrushPos;
+  //   console.log("bruh pos changed");
+  // }
   // draw test box!!! spinning!!!
   // push();
   // fill("white");
@@ -300,19 +305,48 @@ function drawGridCursor(currBrushPos) {
 }
 
 /**
+ * Using the given color, set the 
+ * pixel fill color globally.
+ * @param {p5.Color} color 
+ */
+function setPixelColor(color) {
+  _currentFillColor = color;
+  fill(color);
+}
+
+/**
  * Adds a pixel to the canvas.
  * Uses the fill color that was set previously.
- * @param {p5.Vector} coord x, y, z coordinate
+ * @param {p5.Vector} pos x, y, z pos
  */
-function addPixel(coord) {
+function addPixel(pos) {
+  // for now, I'm just gonna have one pixel per cell.
+  // performance reasons
+  
+  if (!_firstPixelPlaced) {
+    _firstPixelPlaced = true;
+    _lastBrushPos = createVector(-255, -255, -255);
+  }
+  
+  // also check if new position is different
+  // (only draw when new position)
+  if (pos.equals(_lastBrushPos)) {
+    console.log("same pos");
+    return;
+  }
   
   // check if there is already a coordinate in _drawnPixels
-  let possibleColor = _pixelsDrawn = get(coord);
+  let possibleColor = _pixelsDrawn.get(pos);
   
   // if not, set a new position entry with a new color array
+  if (possibleColor === undefined) {
+    _pixelsDrawn.set(pos, []);
+    // add the color to the array
+    _pixelsDrawn.get(pos).push(_currentFillColor);
+    console.log("added color");
+  }
   
-  // add the color to the array
-  
+  _lastBrushPos = pos;
 }
 
 /**
@@ -413,8 +447,14 @@ function keyPressed() {
       ortho();
     }
   }
-  // "z" for zlog the last camera position
+  
+  // "x" for set pixel color to blue
   if (keyCode === 90) {
+    setPixelColor(color("blue"));
+  }
+  
+  // "c" for log the last camera position
+  if (keyCode === 67) {
     console.log(_lastCameraPos);
     console.log(_lastCameraPoint);
   }
