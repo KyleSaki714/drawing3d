@@ -5,7 +5,8 @@
  * A 3d pixel drawing app. Inspired by Warioware DIY and Mario Paint. 
  */
 
-let DRAWGRID = true;
+let DRAW_GRID_FULL = false; // debug
+const BACKGROUND_COLOR = "#D0EAF2";
 
 const GRID_SIZE = 16; // how many cells there are, CELL_SIZE ^ 3.
 const CELL_SIZE = 32; // how big pixels are, CELL_SIZE x CELL_SIZE x CELL_SIZE. 
@@ -34,14 +35,18 @@ function preload() {
 
 function setup() {
   createCanvas(640, 480, WEBGL);
-  frameRate(30); // 24 is stop-motion
+  frameRate(60); // 24 is stop-motion
   // _lastCameraPos = createVector(0, 0, 800);
   CAMERA_RESET = createVector(
-    -507.1917665750024,
-    -376.91156923843215,
-    490.60593238642537
+    719.1626069130599,
+    -383.62382814710674,
+    821.2028251092735
   );
-  CAMERA_ORIGIN = createVector(0, 0, 0);
+  CAMERA_ORIGIN = createVector(
+    (CELL_SIZE * GRID_SIZE) / 2,
+    -69,
+    (CELL_SIZE * GRID_SIZE) / 2
+  );
   _lastCameraPos = CAMERA_RESET;
   _lastCameraPoint = CAMERA_ORIGIN;
   _lastBrushPos = CAMERA_ORIGIN;
@@ -61,11 +66,11 @@ function loadPalette(paletteFile) {
   console.log(colors);
 }
 
-function drawDebugAxis() {
+function drawAxisNames() {
   
   push();
   textSize(100);
-  translate(-150,0,0);
+  translate(CELL_SIZE * GRID_SIZE,0,0);
   rotateY(radians(90));
   fill("blue");
   text("x", 0, 0);
@@ -73,7 +78,7 @@ function drawDebugAxis() {
 
   push();
   textSize(100);
-  translate(0,0,150);
+  translate(0,0,CELL_SIZE * GRID_SIZE);
   fill("red")
   text("z", 0, 0);
   pop(); 
@@ -81,7 +86,7 @@ function drawDebugAxis() {
   push();
   textSize(100);
   fill("green")
-  translate(0, 150, 0);
+  // translate(0, CELL_SIZE * GRID_SIZE, 0);
   rotateX(radians(90));
   text("y", 0, 0);
   pop(); 
@@ -91,7 +96,7 @@ function drawDebugAxis() {
 /**
  * Rotates the camera around the point's Y axis.
  * Credit to this video https://youtu.be/E9MnSQ9_hk0
- * @param {Number} theta rotation 
+ * @param {Number} theta rotation in DEGREES
  * @param {p5.Vector} point point the camera is pointing at
  */
 function rotateCameraAroundPointY(theta, point) {
@@ -113,7 +118,7 @@ function rotateCameraAroundPointY(theta, point) {
 /**
  * Rotates the camera around the point's X axis.
  * Credit to this video https://youtu.be/E9MnSQ9_hk0
- * @param {Number} theta rotation 
+ * @param {Number} theta rotation in DEGREES
  * @param {p5.Vector} point point the camera is pointing at
  */
 function rotateCameraAroundPointX(theta, point) {
@@ -152,7 +157,7 @@ function rotateCameraAroundOriginX(theta) {
 
 function draw() {
   clear();
-  background(220);
+  background(BACKGROUND_COLOR);
   
   let currBrushPos = snapToGrid(_lastCameraPoint); // This will be set from potentiometers later
   
@@ -163,9 +168,10 @@ function draw() {
   
   drawCamera();
   
-  drawGrid(currBrushPos);
+  drawAxisNames();
+  drawGrid();
+  drawGridCursor(currBrushPos);
   
-  drawDebugAxis();
   
   _lastBrushPos = currBrushPos;
   // draw test box!!! spinning!!!
@@ -190,10 +196,11 @@ function snapToGrid(currentPos) {
   return createVector(snapx, snapy, snapz);
 }
 
-function drawGrid(currBrushPos) {
-  if (DRAWGRID) {
+function drawGrid() {
+  stroke(0, 0, 0, 128);
+  noFill();
+  if (DRAW_GRID_FULL) {
     push();
-    fill("SlateBlue");
     // creates z-x grid
     // along z
     for (let i = 0; i <= GRID_SIZE; i++) {
@@ -221,8 +228,34 @@ function drawGrid(currBrushPos) {
       line(0, i * -CELL_SIZE, 0, 0, i * -CELL_SIZE, CELL_SIZE * GRID_SIZE);
     }
     pop();
+  } else {
+    push()
+    translate(0, -CELL_SIZE * GRID_SIZE, 0);
+    rect(0,0, CELL_SIZE * GRID_SIZE, CELL_SIZE * GRID_SIZE);
+    pop()
+    
+    push()
+    rotateX(radians(90));
+    rect(0,0, CELL_SIZE * GRID_SIZE, CELL_SIZE * GRID_SIZE);
+    pop()
+    
+    push()
+    rotateY(radians(-90));
+    translate(0, -CELL_SIZE * GRID_SIZE, 0);
+    rect(0,0, CELL_SIZE * GRID_SIZE, CELL_SIZE * GRID_SIZE);
+    pop()
+    // x,y,z axes from origin
+    // line(0, 0, 0, 0, 0, CELL_SIZE * GRID_SIZE);
+    // line(0, 0, 0, 0, -CELL_SIZE * GRID_SIZE, 0);
+    // line(0, 0, 0, CELL_SIZE * GRID_SIZE, 0, 0);
+    
+    // line(CELL_SIZE * GRID_SIZE, 0, 0,  CELL_SIZE * GRID_SIZE, 0, CELL_SIZE * GRID_SIZE);
+    // line(0, 0, 0, 0, -CELL_SIZE * GRID_SIZE, 0);
+    // line(0, 0, 0, CELL_SIZE * GRID_SIZE, 0, 0);
   }
-  
+}
+
+function drawGridCursor(currBrushPos) {
   // fill grid cursor
   push();
   fill(246,237,195,200);
