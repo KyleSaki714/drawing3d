@@ -51,6 +51,7 @@ let serialVal_a1 = 0.0;
 let serialVal_a2 = 0.0;
 let serialVal_a3 = 0.0;
 let serialVal_a4 = 0.0;
+let lastSerialVal_a4 = 0.0;
 let button0value = 0;
 
 function preload() {
@@ -145,9 +146,10 @@ function drawAxisNames() {
  * @param {p5.Vector} point point the camera is pointing at
  */
 function rotateCameraAroundPointY(theta, point) {
+  console.log(theta);
   let t = radians(theta);
   let cameraPos = _lastCameraPos;
-  // console.log(t);
+  console.log(t);
   // console.log(cameraPos);
   let x = ((cameraPos.x - point.x) * cos(t)) - ((cameraPos.z - point.z) * sin(t)) + point.x;
   let z = ((cameraPos.x - point.x) * sin(t)) + ((cameraPos.z - point.z) * cos(t)) + point.y;
@@ -222,6 +224,7 @@ function draw() {
   } 
   
   drawPixels();
+  lastSerialVal_a4 = serialVal_a4;
   // if (!currBrushPos.equals(_lastBrushPos)) {
   //   _lastBrushPos = currBrushPos;
   //   console.log("bruh pos changed");
@@ -485,7 +488,10 @@ function drawCamera() {
 
   let mouseVelx = mouseX - pmouseX;
   let mouseVely = mouseY - pmouseY;
-  if ((mouseVelx !== 0 || mouseVely !== 0) && mouseIsPressed) {
+  let a4delta = serialVal_a4 - lastSerialVal_a4;
+  // console.log(mouseVelx);
+  // console.log(a4delta * 100.0);
+  if (mouseIsPressed && (mouseVelx !== 0 || mouseVely !== 0)) {
     // rotateCameraAroundPointY(mouseVelx, createVector(0,0,0));
     // rotateCameraAroundPointX(mouseVely, createVector(0,0,0));
     // rotateCameraAroundOrigin(mouseVelx);
@@ -493,6 +499,9 @@ function drawCamera() {
     rotateCameraAroundOriginX(mouseVely);
     rotateCameraAroundOriginY(mouseVelx);
     // console.log("mouse move xvel: " + mouseVelx);
+  } else if (a4delta != 0) {
+    // rotateCameraAroundPointY(a4delta * 10.0 * 90, _lastCameraPoint);
+    rotateCameraAroundOriginY(a4delta * 100.0 * 2);
   }
   
   // if (keyIsDown(RIGHT_ARROW)) {
@@ -601,13 +610,13 @@ function onSerialDataReceived(eventSender, newData) {
   // let a2split = pinData[2].split(":");
   // serialVal_a2 = parseFloat(a2split[1]);
 
-  console.log("serialVal_a0: " + serialVal_a0 +
-   " serialVal_a1: " + serialVal_a1 +
-   " serialVal_a2: " + serialVal_a2 +
-   " serialVal_a3: " + serialVal_a3 +
-   " button0value: " + button0value +
-   " serialVal_a4: " + serialVal_a4
-  );
+  // console.log("serialVal_a0: " + serialVal_a0 +
+  //  " serialVal_a1: " + serialVal_a1 +
+  //  " serialVal_a2: " + serialVal_a2 +
+  //  " serialVal_a3: " + serialVal_a3 +
+  //  " button0value: " + button0value +
+  //  " serialVal_a4: " + serialVal_a4
+  // );
 }
 
 /**
