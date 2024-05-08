@@ -80,10 +80,15 @@ function setup() {
   document.querySelector("p").addEventListener("click", openSerial);
   
   // _lastCameraPos = createVector(0, 0, 800);
+  // CAMERA_RESET = createVector(
+  //   719.1626069130599,
+  //   -383.62382814710674,
+  //   821.2028251092735
+  // );
   CAMERA_RESET = createVector(
-    719.1626069130599,
-    -383.62382814710674,
-    821.2028251092735
+    1074.0294641043608,
+    -424.18733772705235,
+    72.5395714035885
   );
   CAMERA_ORIGIN = createVector(
     (CELL_SIZE * GRID_SIZE) / 2,
@@ -96,7 +101,7 @@ function setup() {
   textFont(myFont);
   textSize(36);
   _cameraIsPerspective = false;
-  ortho();
+  ortho(undefined, undefined, undefined, undefined, undefined, max(width, height) + 1000);
   _currentFillColor = color(0, 0, 0);
   _pixelsDrawn = new Map();
   _firstPixelPlaced = false;
@@ -146,7 +151,6 @@ function drawAxisNames() {
  * @param {p5.Vector} point point the camera is pointing at
  */
 function rotateCameraAroundPointY(theta, point) {
-  console.log(theta);
   let t = radians(theta);
   let cameraPos = _lastCameraPos;
   console.log(t);
@@ -266,7 +270,7 @@ function moveGridCursor() {
 }
 
 function drawGrid() {
-  stroke(0, 0, 0, 128);
+  stroke(0, 0, 0, 20);
   noFill();
   if (DRAW_GRID_FULL) {
     push();
@@ -525,7 +529,7 @@ function keyPressed() {
     _cameraIsPerspective = !_cameraIsPerspective;
     
     if (_cameraIsPerspective) {
-      perspective();
+      perspective(0.5, 1.5, 100, 10000);
     } else {
       ortho();
     }
