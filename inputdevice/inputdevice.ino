@@ -4,6 +4,7 @@ const int XPOTPIN = A0;
 const int ZPOTPIN = A1;
 const int YPOTPIN = A2;
 const int SLIDERPOTPIN = A3;
+const int TRIMPOTPIN = A4;
 const int BUTTON0PIN = 4;
 
 int _lastButtonPress = LOW;
@@ -20,6 +21,7 @@ void loop() {
   float zval = analogRead(ZPOTPIN) / (float) 1023;
   float yval = analogRead(YPOTPIN) / (float) 1023;
   float sliderval = analogRead(SLIDERPOTPIN) / (float) 1023;
+  float trimpotval = analogRead(TRIMPOTPIN) / (float) 1023;
 
   // Serial.print("x: ");
   // Serial.print(xval, 4);
@@ -43,10 +45,12 @@ void loop() {
   int btnval = digitalRead(BUTTON0PIN);
   // btnval != _lastButtonPress && 
   if (btnval == LOW) {
-    Serial.println(HIGH);
+    Serial.print(HIGH);
   } else {
-    Serial.println(LOW);
+    Serial.print(LOW);
   }
+  Serial.print(",");
+  Serial.println(trimpotval, 4);
 
   _lastButtonPress = btnval;
 

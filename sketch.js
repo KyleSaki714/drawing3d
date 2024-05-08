@@ -50,6 +50,7 @@ let serialVal_a0 = 0.0; // values from pins on web serial.
 let serialVal_a1 = 0.0;
 let serialVal_a2 = 0.0;
 let serialVal_a3 = 0.0;
+let serialVal_a4 = 0.0;
 let button0value = 0;
 
 function preload() {
@@ -213,7 +214,7 @@ function draw() {
   drawGrid();
   drawGridCursor(currBrushPos);  
 
-  pointLight(255, 255, 255, mouseX, mouseY, 0);
+  // pointLight(255, 255, 255, mouseX, mouseY, 0);
   checkChangePixelColor();
   
   if (button0value) {
@@ -425,8 +426,10 @@ function drawPixels() {
   for (const pos of _pixelsDrawn.keys()) {
     for (const color of _pixelsDrawn.get(pos)) {
       push();
-      noStroke();
-      specularMaterial(red(color), green(color), blue(color));
+      // let gray = color(255, 255, 255);
+      // stroke(gray.setAlpha(128));
+      stroke("black");
+      // specularMaterial(red(color), green(color), blue(color));
       fill(color);
       // CELL SIZE OFFSET
       translate(CELL_SIZE / 2, CELL_SIZE / 2, CELL_SIZE / 2);
@@ -589,6 +592,7 @@ function onSerialDataReceived(eventSender, newData) {
   serialVal_a2 = parseFloat(pinData[2]);
   serialVal_a3 = parseFloat(pinData[3]);
   button0value = parseInt(pinData[4]);
+  serialVal_a4 = parseFloat(pinData[5]);
 
   // let a0split = pinData[0].split(":");
   // serialVal_a0 = parseFloat(a0split[1]);
@@ -597,12 +601,13 @@ function onSerialDataReceived(eventSender, newData) {
   // let a2split = pinData[2].split(":");
   // serialVal_a2 = parseFloat(a2split[1]);
 
-  // console.log("serialVal_a0: " + serialVal_a0 +
-  //  " serialVal_a1: " + serialVal_a1 +
-  //  " serialVal_a2: " + serialVal_a2 +
-  //  " serialVal_a3: " + serialVal_a3 +
-  //  " button0value: " + button0value
-  // );
+  console.log("serialVal_a0: " + serialVal_a0 +
+   " serialVal_a1: " + serialVal_a1 +
+   " serialVal_a2: " + serialVal_a2 +
+   " serialVal_a3: " + serialVal_a3 +
+   " button0value: " + button0value +
+   " serialVal_a4: " + serialVal_a4
+  );
 }
 
 /**
