@@ -49,6 +49,8 @@ let serial;
 let serialVal_a0 = 0.0; // values from pins on web serial.
 let serialVal_a1 = 0.0;
 let serialVal_a2 = 0.0;
+let serialVal_a3 = 0.0;
+let button0value = 0;
 
 function preload() {
   myFont = loadFont("resources/Litebulb 8-bit.ttf");
@@ -567,6 +569,8 @@ function onSerialDataReceived(eventSender, newData) {
   serialVal_a0 = parseFloat(pinData[0]);
   serialVal_a1 = parseFloat(pinData[1]);
   serialVal_a2 = parseFloat(pinData[2]);
+  serialVal_a3 = parseFloat(pinData[3]);
+  button0value = parseInt(pinData[4]);
 
   // let a0split = pinData[0].split(":");
   // serialVal_a0 = parseFloat(a0split[1]);
@@ -575,9 +579,12 @@ function onSerialDataReceived(eventSender, newData) {
   // let a2split = pinData[2].split(":");
   // serialVal_a2 = parseFloat(a2split[1]);
 
-  // console.log("serialVal_a0: " + serialVal_a0 +
-  //  " serialVal_a1: " + serialVal_a1 +
-  //  " serialVal_a2: " + serialVal_a2 );
+  console.log("serialVal_a0: " + serialVal_a0 +
+   " serialVal_a1: " + serialVal_a1 +
+   " serialVal_a2: " + serialVal_a2 +
+   " serialVal_a3: " + serialVal_a3 +
+   " button0value: " + button0value
+  );
 }
 
 /**
