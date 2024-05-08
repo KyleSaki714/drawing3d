@@ -6,11 +6,12 @@
  */
 
 let DRAW_GRID_FULL = false; // debug
+let MOVE_BRUSH_MODE = false; // if true, using real axis to move. otherwise, using arrow keys to move pixel position.
 const BACKGROUND_COLOR = "#D0EAF2";
 
 const GRID_SIZE = 16; // how many cells there are, CELL_SIZE ^ 3.
 const CELL_SIZE = 32; // how big pixels are, CELL_SIZE x CELL_SIZE x CELL_SIZE. 
-const CAMERA_NUDGE_SPEED = 3; // nudgin the camera with arrow keys
+const CAMERA_NUDGE_SPEED = 6; // nudgin the camera with arrow keys
 let CAMERA_RESET; // assigned at setup, cant use const?
 let CAMERA_ORIGIN;
 
@@ -23,6 +24,7 @@ let _cameraIsPerspective; // default is false, perspective mode is true;
 
 let _firstPixelPlaced;
 let _lastBrushPos;
+let _clrIndex = 0;
 let _currentFillColor;
 let myFont;
 let _myColors; // colors available to draw in. read in on preload()
@@ -49,7 +51,8 @@ let serial;
 let serialVal_a0 = 0.0; // values from pins on web serial.
 let serialVal_a1 = 0.0;
 let serialVal_a2 = 0.0;
-let serialVal_a3 = 0.0;
+let serialVal_a3 = 0.0; // slider
+let lastSerialVal_a3 = 0.0;
 let serialVal_a4 = 0.0;
 let lastSerialVal_a4 = 0.0;
 let button0value = 0;
@@ -213,7 +216,14 @@ function draw() {
   clear();
   background(BACKGROUND_COLOR);
   
-  let currBrushPos = snapToGrid(moveGridCursor()); // This will be set from potentiometers later
+  let currBrushPos;
+  if (MOVE_BRUSH_MODE) {
+    // move the brush with the IRL axis (serial, a0, a1, a2) 
+    currBrushPos = snapToGrid(moveGridCursor());
+  } else {
+    // move the brush with the camera
+    currBrushPos = snapToGrid(_lastCameraPoint);
+  }
   
   // console.log("currBrushPos: " + currBrushPos);
   
@@ -224,13 +234,15 @@ function draw() {
   drawGridCursor(currBrushPos);  
 
   // pointLight(255, 255, 255, mouseX, mouseY, 0);
-  checkChangePixelColor();
+  checkChangePixelColorSerial();
   
-  if (button0value) {
+  // "z" for placing a pixel
+  if (keyIsDown(90) || button0value) {
     addPixel(currBrushPos);
-  } 
+  }
   
   drawPixels();
+  lastSerialVal_a3 = serialVal_a3;
   lastSerialVal_a4 = serialVal_a4;
   // if (!currBrushPos.equals(_lastBrushPos)) {
   //   _lastBrushPos = currBrushPos;
@@ -383,12 +395,23 @@ function setPixelColor(color) {
   fill(color);
 }
 
-function checkChangePixelColor() {
+function checkChangePixelColorSerial() {
+  if (serialVal_a3 === lastSerialVal_a3) {
+    return;
+  }
+  
   if (serialVal_a3 >= 1) {
     serialVal_a3 = 0.99;
   }
-  let clrpos = Math.trunc(serialVal_a3 * _myColors.length);
-  let newClr = "#" + _myColors[clrpos].substring(2, 9);
+  _clrIndex = Math.trunc(serialVal_a3 * _myColors.length);
+  let newClr = "#" + _myColors[_clrIndex].substring(2, 9);
+  if (newClr != _currentFillColor) {
+    setPixelColor(newClr);
+  }
+}
+
+function checkChangePixelColorClrIndex() {
+  let newClr = "#" + _myColors[_clrIndex].substring(2, 9);
   if (newClr != _currentFillColor) {
     setPixelColor(newClr);
   }
@@ -438,7 +461,7 @@ function drawPixels() {
       push();
       // let gray = color(255, 255, 255);
       // stroke(gray.setAlpha(128));
-      stroke("black");
+      stroke(0, 0, 0, 15);
       // specularMaterial(red(color), green(color), blue(color));
       fill(color);
       // CELL SIZE OFFSET
@@ -548,17 +571,22 @@ function keyPressed() {
       ortho(undefined, undefined, undefined, undefined, undefined, max(width, height) + 1000);
     }
   }
-  
-  // "x" for set pixel color to blue
+    
+  // "x" for toggle pixel color left
   if (keyCode === 88) {
-    setPixelColor(color("blue"));
+    _clrIndex--;
+    if (_clrIndex === -1) {
+      _clrIndex = _myColors.length - 1;
+    }
+    checkChangePixelColorClrIndex();
+  }
+  
+  // "c" for toggle pixel color left
+  if (keyCode === 67) {
+    _clrIndex = (_clrIndex + 1) % _myColors.length;
+    checkChangePixelColorClrIndex();
   }
 
-  // "s" screenshot
-  if (keyCode === 83) {
-    screenshot();
-  }
-  
   // "c" for log the last camera position
   if (keyCode === 67) {
     console.log(_lastCameraPos);
