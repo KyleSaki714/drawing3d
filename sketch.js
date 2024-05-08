@@ -213,6 +213,7 @@ function draw() {
   drawGrid();
   drawGridCursor(currBrushPos);  
 
+  pointLight(255, 255, 255, mouseX, mouseY, 0);
   checkChangePixelColor();
   
   if (button0value) {
@@ -425,6 +426,7 @@ function drawPixels() {
     for (const color of _pixelsDrawn.get(pos)) {
       push();
       noStroke();
+      specularMaterial(red(color), green(color), blue(color));
       fill(color);
       // CELL SIZE OFFSET
       translate(CELL_SIZE / 2, CELL_SIZE / 2, CELL_SIZE / 2);
