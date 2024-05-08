@@ -15,11 +15,20 @@ void loop() {
   float zval = analogRead(ZPOTPIN) / (float) 1023;
   float yval = analogRead(YPOTPIN) / (float) 1023;
 
-  Serial.print("x: ");
+  // Serial.print("x: ");
+  // Serial.print(xval, 4);
+  // Serial.print(" z: ");
+  // Serial.print(zval, 4);
+  // Serial.print(" y: ");
+  // Serial.println(yval, 4);
+
+  Serial.print("A0:");
   Serial.print(xval, 4);
-  Serial.print(" z: ");
+  Serial.print(",");
+  Serial.print("A1:");
   Serial.print(zval, 4);
-  Serial.print(" y: ");
+  Serial.print(",");
+  Serial.print("A2:");
   Serial.println(yval, 4);
 
   delay(50);

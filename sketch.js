@@ -29,6 +29,27 @@ let _myColors; // colors available to draw in. read in on preload()
 let paletteText;
 let _pixelsDrawn; // Map (p5.Vector => p5.Color[])
 
+// This is a basic web serial template for p5.js using the Makeability Lab
+// serial.js library:
+// https://github.com/makeabilitylab/p5js/blob/master/_libraries/serial.js
+//
+// See a basic example of how to use the library here:
+// https://editor.p5js.org/jonfroehlich/sketches/5Knw4tN1d
+//
+// For more information, see:
+// https://makeabilitylab.github.io/physcomp/communication/p5js-serial
+// 
+// By Jon E. Froehlich
+// @jonfroehlich
+// http://makeabilitylab.io/
+//
+let pHtmlMsg;
+let serialOptions = { baudRate: 115200  };
+let serial;
+let serialVal_a0 = 0.0;
+let serialVal_a1 = 0.0;
+let serialVal_a2 = 0.0;
+
 function preload() {
   myFont = loadFont("resources/Litebulb 8-bit.ttf");
   _myColors = [];
@@ -38,6 +59,22 @@ function preload() {
 function setup() {
   createCanvas(640, 480, WEBGL);
   frameRate(30); // 24 is stop-motion
+  
+  // Setup Web Serial using serial.js
+  serial = new Serial();
+  serial.on(SerialEvents.CONNECTION_OPENED, onSerialConnectionOpened);
+  serial.on(SerialEvents.CONNECTION_CLOSED, onSerialConnectionClosed);
+  serial.on(SerialEvents.DATA_RECEIVED, onSerialDataReceived);
+  serial.on(SerialEvents.ERROR_OCCURRED, onSerialErrorOccurred);
+
+  // If we have previously approved ports, attempt to connect with them
+  serial.autoConnectAndOpenPreviouslyApprovedPort(serialOptions);
+
+  // Add in a lil <p> element to provide messages. This is optional
+  pHtmlMsg = createP("Click anywhere on this page to open the serial connection dialog");
+  pHtmlMsg.style('color', 'deeppink');
+  document.querySelector("p").addEventListener("click", openSerial);
+  
   // _lastCameraPos = createVector(0, 0, 800);
   CAMERA_RESET = createVector(
     719.1626069130599,
@@ -165,7 +202,7 @@ function draw() {
   background(BACKGROUND_COLOR);
   
   let currBrushPos = snapToGrid(_lastCameraPoint); // This will be set from potentiometers later
-  console.log("currBrushPos: " + currBrushPos);
+  // console.log("currBrushPos: " + currBrushPos);
   
   drawCamera();
   
@@ -449,7 +486,7 @@ function keyPressed() {
   }
   
   // "x" for set pixel color to blue
-  if (keyCode === 90) {
+  if (keyCode === 88) {
     setPixelColor(color("blue"));
   }
   
@@ -465,4 +502,67 @@ function keyPressed() {
   }
   // Uncomment to prevent any default behavior.
   return false;
+}
+
+/**
+ * Callback function by serial.js when there is an error on web serial
+ * 
+ * @param {} eventSender 
+ */
+function onSerialErrorOccurred(eventSender, error) {
+  console.log("onSerialErrorOccurred", error);
+  console.log("onSerialErrorOccurred", eventSender);
+  pHtmlMsg.html(error);
+}
+
+/**
+ * Callback function by serial.js when web serial connection is opened
+ * 
+ * @param {} eventSender 
+ */
+function onSerialConnectionOpened(eventSender) {
+  console.log("onSerialConnectionOpened");
+  pHtmlMsg.html("Serial connection opened successfully");
+}
+
+/**
+ * Callback function by serial.js when web serial connection is closed
+ * 
+ * @param {} eventSender 
+ */
+function onSerialConnectionClosed(eventSender) {
+  console.log("onSerialConnectionClosed");
+  pHtmlMsg.html("onSerialConnectionClosed");
+}
+
+/**
+ * Callback function serial.js when new web serial data is received
+ * 
+ * @param {*} eventSender 
+ * @param {String} newData new data received over serial
+ */
+function onSerialDataReceived(eventSender, newData) {
+  // console.log("onSerialDataReceived", newData);
+  pHtmlMsg.html("onSerialDataReceived: " + newData);
+  let pinData = newData.split(",");
+  // for (let i = 0; i < peripherals.length; i++) {
+  //   let currPin = peripherals[i];
+    
+  // }
+  // serialVal_a0 = parseFloat(pinData[0].split[":"][1]); 
+  // serialVal_a1 = parseFloat(pinData[1].split[":"][1]); 
+  // serialVal_a2 = parseFloat(pinData[2].split[":"][1]); 
+  // console.log("serialVal_a0: " + serialVal_a0 +
+  //  " serialVal_a1: " + serialVal_a1 +
+  //  " serialVal_a2: " + serialVal_a2 );
+  console.log("set val a0 to " + serialVal_a0);
+}
+
+/**
+ * Called automatically by the browser through p5.js when mouse clicked
+ */
+function openSerial() {
+  if (!serial.isOpen()) {
+    serial.connectAndOpen(null, serialOptions);
+  }
 }
