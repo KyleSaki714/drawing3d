@@ -75,9 +75,12 @@ function setup() {
   serial.autoConnectAndOpenPreviouslyApprovedPort(serialOptions);
 
   // Add in a lil <p> element to provide messages. This is optional
-  pHtmlMsg = createP("Click anywhere on this page to open the serial connection dialog");
+  pHtmlMsg = createP("Click here to open the serial connection dialog");
   pHtmlMsg.style('color', 'deeppink');
   document.querySelector("p").addEventListener("click", openSerial);
+
+  let saveButton = document.getElementById("save-btn");
+  saveButton.addEventListener("click", screenshot);
   
   // _lastCameraPos = createVector(0, 0, 800);
   // CAMERA_RESET = createVector(
@@ -523,6 +526,17 @@ function drawCamera() {
   // }
 }
 
+function screenshot() {
+  let date = new Date().toJSON();
+  saveCanvas("Penguin_Island_design_" + date, "png");
+
+  let textArea = document.getElementById("design-output");
+  textArea.readonly = false;
+  let designStr = JSON.stringify(_pixelsDrawn);
+  console.log(_pixelsDrawn);
+  textArea.textContent = designStr;
+}
+
 function keyPressed() {
   // "p" for perspective
   if (keyCode === 80) {
@@ -531,13 +545,18 @@ function keyPressed() {
     if (_cameraIsPerspective) {
       perspective(0.5, 1.5, 100, 10000);
     } else {
-      ortho();
+      ortho(undefined, undefined, undefined, undefined, undefined, max(width, height) + 1000);
     }
   }
   
   // "x" for set pixel color to blue
   if (keyCode === 88) {
     setPixelColor(color("blue"));
+  }
+
+  // "s" screenshot
+  if (keyCode === 83) {
+    screenshot();
   }
   
   // "c" for log the last camera position
