@@ -212,8 +212,10 @@ function draw() {
   drawAxisNames();
   drawGrid();
   drawGridCursor(currBrushPos);  
+
+  checkChangePixelColor();
   
-  if (keyIsDown(90)) {
+  if (button0value) {
     addPixel(currBrushPos);
   } 
   
@@ -323,6 +325,7 @@ function drawGridCursor(currBrushPos) {
   // CELL SIZE OFFSET
   translate(CELL_SIZE / 2, CELL_SIZE / 2, CELL_SIZE / 2);
   translate(currBrushPos.x, currBrushPos.y, currBrushPos.z);
+  fill(color(_currentFillColor));
   box(CELL_SIZE, CELL_SIZE);
   pop();
   
@@ -364,7 +367,19 @@ function drawGridCursor(currBrushPos) {
  */
 function setPixelColor(color) {
   _currentFillColor = color;
+  console.log("_currentFillColor"+_currentFillColor)
   fill(color);
+}
+
+function checkChangePixelColor() {
+  if (serialVal_a3 >= 1) {
+    serialVal_a3 = 0.99;
+  }
+  let clrpos = Math.trunc(serialVal_a3 * _myColors.length);
+  let newClr = "#" + _myColors[clrpos].substring(2, 9);
+  if (newClr != _currentFillColor) {
+    setPixelColor(newClr);
+  }
 }
 
 /**
@@ -409,7 +424,8 @@ function drawPixels() {
   for (const pos of _pixelsDrawn.keys()) {
     for (const color of _pixelsDrawn.get(pos)) {
       push();
-      fill(color)
+      noStroke();
+      fill(color);
       // CELL SIZE OFFSET
       translate(CELL_SIZE / 2, CELL_SIZE / 2, CELL_SIZE / 2);
       translate(pos.x, pos.y, pos.z);
@@ -579,12 +595,12 @@ function onSerialDataReceived(eventSender, newData) {
   // let a2split = pinData[2].split(":");
   // serialVal_a2 = parseFloat(a2split[1]);
 
-  console.log("serialVal_a0: " + serialVal_a0 +
-   " serialVal_a1: " + serialVal_a1 +
-   " serialVal_a2: " + serialVal_a2 +
-   " serialVal_a3: " + serialVal_a3 +
-   " button0value: " + button0value
-  );
+  // console.log("serialVal_a0: " + serialVal_a0 +
+  //  " serialVal_a1: " + serialVal_a1 +
+  //  " serialVal_a2: " + serialVal_a2 +
+  //  " serialVal_a3: " + serialVal_a3 +
+  //  " button0value: " + button0value
+  // );
 }
 
 /**
