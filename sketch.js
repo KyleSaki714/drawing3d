@@ -46,7 +46,7 @@ let _pixelsDrawn; // Map (p5.Vector => p5.Color[])
 let pHtmlMsg;
 let serialOptions = { baudRate: 115200  };
 let serial;
-let serialVal_a0 = 0.0;
+let serialVal_a0 = 0.0; // values from pins on web serial.
 let serialVal_a1 = 0.0;
 let serialVal_a2 = 0.0;
 
@@ -201,7 +201,8 @@ function draw() {
   clear();
   background(BACKGROUND_COLOR);
   
-  let currBrushPos = snapToGrid(_lastCameraPoint); // This will be set from potentiometers later
+  let currBrushPos = snapToGrid(moveGridCursor()); // This will be set from potentiometers later
+  
   // console.log("currBrushPos: " + currBrushPos);
   
   drawCamera();
@@ -240,6 +241,19 @@ function snapToGrid(currentPos) {
   let snapz = round((currentPos.z - CELL_SIZE /2) / CELL_SIZE) * CELL_SIZE;
   
   return createVector(snapx, snapy, snapz);
+}
+
+/**
+ * Uses read in Serial values to create the position of the brush.
+ * @returns {p5.Vector}
+ */
+function moveGridCursor() {
+  let xpos = serialVal_a0 * CELL_SIZE * GRID_SIZE;
+  let zpos = serialVal_a1 * CELL_SIZE * GRID_SIZE;
+  let ypos = serialVal_a2 * -CELL_SIZE * GRID_SIZE; // NEGATIVE CAUSE WEB
+  let res = createVector(xpos, ypos, zpos);
+  // console.log("moveGridCursor: " + res);
+  return res;
 }
 
 function drawGrid() {
@@ -543,19 +557,27 @@ function onSerialConnectionClosed(eventSender) {
  */
 function onSerialDataReceived(eventSender, newData) {
   // console.log("onSerialDataReceived", newData);
-  pHtmlMsg.html("onSerialDataReceived: " + newData);
+  // pHtmlMsg.html("onSerialDataReceived: " + newData);
   let pinData = newData.split(",");
   // for (let i = 0; i < peripherals.length; i++) {
   //   let currPin = peripherals[i];
     
   // }
-  // serialVal_a0 = parseFloat(pinData[0].split[":"][1]); 
-  // serialVal_a1 = parseFloat(pinData[1].split[":"][1]); 
-  // serialVal_a2 = parseFloat(pinData[2].split[":"][1]); 
+
+  serialVal_a0 = parseFloat(pinData[0]);
+  serialVal_a1 = parseFloat(pinData[1]);
+  serialVal_a2 = parseFloat(pinData[2]);
+
+  // let a0split = pinData[0].split(":");
+  // serialVal_a0 = parseFloat(a0split[1]);
+  // let a1split = pinData[1].split(":");
+  // serialVal_a1 = parseFloat(a1split[1]);
+  // let a2split = pinData[2].split(":");
+  // serialVal_a2 = parseFloat(a2split[1]);
+
   // console.log("serialVal_a0: " + serialVal_a0 +
   //  " serialVal_a1: " + serialVal_a1 +
   //  " serialVal_a2: " + serialVal_a2 );
-  console.log("set val a0 to " + serialVal_a0);
 }
 
 /**

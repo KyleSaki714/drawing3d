@@ -22,13 +22,13 @@ void loop() {
   // Serial.print(" y: ");
   // Serial.println(yval, 4);
 
-  Serial.print("A0:");
+  // Serial.print("A0:");
   Serial.print(xval, 4);
   Serial.print(",");
-  Serial.print("A1:");
+  // Serial.print("A1:");
   Serial.print(zval, 4);
   Serial.print(",");
-  Serial.print("A2:");
+  // Serial.print("A2:");
   Serial.println(yval, 4);
 
   delay(50);
