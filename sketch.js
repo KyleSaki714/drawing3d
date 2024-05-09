@@ -34,6 +34,11 @@ let _preload_design;
 let _designs;
 let _drawnPixels; // Map (p5.Vector => p5.Color[])
 
+let _penguin_idle;
+let _penguin1_pos;
+let _penguin1_flip = false;
+let _penguin1_startPos;
+
 // This is a basic web serial template for p5.js using the Makeability Lab
 // serial.js library:
 // https://github.com/makeabilitylab/p5js/blob/master/_libraries/serial.js
@@ -65,6 +70,7 @@ function preload() {
   _myColors = [];
   _preload_paletteText = loadStrings("resources/pico-8.txt", loadPalette);
   _preload_design = loadStrings("designs/penguin_Penguin_Island_2024-05-09T00_44_33.194Z.txt");
+  _penguin_idle = loadImage("resources/penguin_idle.png");
 }
 
 function setup() {
@@ -119,6 +125,8 @@ function setup() {
   importDesignString(_preload_design[0]);
   console.log(_drawnPixels);
   console.log("loaded file");
+  _penguin1_startPos = createVector(CELL_SIZE * 10, CELL_SIZE * -2.5, CELL_SIZE * 4);
+  _penguin1_pos = createVector(CELL_SIZE * 10, CELL_SIZE * -2.5, CELL_SIZE * 4);
 }
 
 function loadPalette(paletteFile) {
@@ -232,6 +240,8 @@ function draw() {
   clear();
   background(BACKGROUND_COLOR);
   
+  drawPenguins();
+  
   let currBrushPos;
   if (MOVE_BRUSH_MODE) {
     // move the brush with the IRL axis (serial, a0, a1, a2) 
@@ -276,6 +286,49 @@ function draw() {
   // _boxx = (_boxx + 1) % 360 ;
   // pop();
   
+}
+
+function drawPenguins() {
+    // draw penguins
+    texture(_penguin_idle);
+    push();
+    translate(_penguin1_pos);
+    if (_penguin1_flip) {
+      rotateY(radians(180));
+    }
+    // rotate(rotatePointAroundPointY(0.1, createVector(0,0,0), _lastCameraPos));
+    plane(CELL_SIZE, CELL_SIZE);
+    _penguin1_pos.x = _penguin1_pos.x + 1;
+    
+    let dist = _penguin1_pos.x - _penguin1_startPos.x;
+    console.log(_penguin1_pos.x);
+    console.log(_penguin1_startPos.x);
+    if (dist > (CELL_SIZE * 4)) {
+      _penguin1_startPos = _penguin1_pos;
+      _penguin1_flip = !_penguin1_flip;
+    }
+    pop()
+    
+    
+    push();
+    translate(CELL_SIZE *11.5, CELL_SIZE * -3.5, CELL_SIZE * 10);
+    plane(CELL_SIZE, CELL_SIZE);
+    pop();
+}
+
+/**
+ * Rotates the p1 around p2 for theta
+ */
+function rotatePointAroundPointY(theta, p1, p2) {
+  let t = radians(theta);
+  let x = ((p1.x - p2.x) * cos(t)) - ((p1.z - p2.z) * sin(t)) + p2.x;
+  let z = ((p1.x - p2.x) * sin(t)) + ((p1.z - p2.z) * cos(t)) + p2.y;
+  let y = p1.y; 
+  let newPos = createVector(x, y, z);
+  // console.log(res);
+  // camera(newCameraPos.x, newCameraPos.y, newCameraPos.z);
+  // _lastCameraPos = newCameraPos;
+  return newPos;
 }
 
 /**
