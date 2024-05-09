@@ -64,7 +64,7 @@ function preload() {
   myFont = loadFont("resources/Litebulb 8-bit.ttf");
   _myColors = [];
   _preload_paletteText = loadStrings("resources/pico-8.txt", loadPalette);
-  _preload_design = loadStrings("designs/designs_Penguin_Island_design_2024-05-09T00_05_09.469Z.txt");
+  _preload_design = loadStrings("designs/penguin_Penguin_Island_2024-05-09T00_44_33.194Z.txt");
 }
 
 function setup() {
@@ -255,6 +255,10 @@ function draw() {
   // "z" for placing a pixel
   if (keyIsDown(90) || button0value) {
     addPixel(currBrushPos);
+  }
+  
+  if (keyIsDown(65)) {
+    removePixel(currBrushPos);
   }
   
   drawPixels();
@@ -466,6 +470,15 @@ function addPixel(pos) {
   }
   
   _lastBrushPos = pos;
+}
+
+
+function removePixel(pos) {
+  for (const canvasPos of _drawnPixels.keys()) {
+    if (pos.equals(canvasPos)) {
+      _drawnPixels.delete(canvasPos);
+    }
+  }
 }
 
 /**
