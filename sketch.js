@@ -8,6 +8,7 @@
 let DRAW_GRID_FULL = false; // debug
 let MOVE_BRUSH_MODE = false; // if true, using real axis to move. otherwise, using arrow keys to move pixel position.
 const BACKGROUND_COLOR = "#D0EAF2";
+const PATH_DESIGNS = "designs/";
 
 const GRID_SIZE = 16; // how many cells there are, CELL_SIZE ^ 3.
 const CELL_SIZE = 32; // how big pixels are, CELL_SIZE x CELL_SIZE x CELL_SIZE. 
@@ -28,8 +29,10 @@ let _clrIndex = 0;
 let _currentFillColor;
 let myFont;
 let _myColors; // colors available to draw in. read in on preload()
-let paletteText;
-let _pixelsDrawn; // Map (p5.Vector => p5.Color[])
+let _preload_paletteText;
+let _preload_design;
+let _designs;
+let _drawnPixels; // Map (p5.Vector => p5.Color[])
 
 // This is a basic web serial template for p5.js using the Makeability Lab
 // serial.js library:
@@ -60,7 +63,8 @@ let button0value = 0;
 function preload() {
   myFont = loadFont("resources/Litebulb 8-bit.ttf");
   _myColors = [];
-  paletteText = loadStrings("resources/pico-8.txt", loadPalette);
+  _preload_paletteText = loadStrings("resources/pico-8.txt", loadPalette);
+  _preload_design = loadStrings("designs/designs_Penguin_Island_design_2024-05-09T00_05_09.469Z.txt");
 }
 
 function setup() {
@@ -83,7 +87,7 @@ function setup() {
   document.querySelector("p").addEventListener("click", openSerial);
 
   let saveButton = document.getElementById("save-btn");
-  saveButton.addEventListener("click", screenshot);
+  saveButton.addEventListener("click", exportDesign);
   
   // _lastCameraPos = createVector(0, 0, 800);
   // CAMERA_RESET = createVector(
@@ -109,8 +113,12 @@ function setup() {
   _cameraIsPerspective = false;
   ortho(undefined, undefined, undefined, undefined, undefined, max(width, height) + 1000);
   _currentFillColor = color(0, 0, 0);
-  _pixelsDrawn = new Map();
+  _drawnPixels = new Map();
   _firstPixelPlaced = false;
+  console.log(_preload_design[0])
+  importDesignString(_preload_design[0]);
+  console.log(_drawnPixels);
+  console.log("loaded file");
 }
 
 function loadPalette(paletteFile) {
@@ -122,6 +130,14 @@ function loadPalette(paletteFile) {
   }
   console.log(_myColors);
 }
+
+// its just one line
+// function loadDesignStrings(designStringFile) {
+//   // for (const hex of paletteFile) {
+//   // }
+//   let s = designStringFile[0];
+  
+// }
 
 function drawAxisNames() {
   
@@ -439,13 +455,13 @@ function addPixel(pos) {
   }
   
   // check if there is already a coordinate in _drawnPixels
-  let possibleColor = _pixelsDrawn.get(pos);
+  let possibleColor = _drawnPixels.get(pos);
   
   // if not, set a new position entry with a new color array
   if (possibleColor === undefined) {
-    _pixelsDrawn.set(pos, []);
+    _drawnPixels.set(pos, []);
     // add the color to the array
-    _pixelsDrawn.get(pos).push(_currentFillColor);
+    _drawnPixels.get(pos).push(_currentFillColor);
     console.log("added color");
   }
   
@@ -456,8 +472,8 @@ function addPixel(pos) {
  * Using _drawnPixels, draws all the pixels added to the canvas.
  */
 function drawPixels() {
-  for (const pos of _pixelsDrawn.keys()) {
-    for (const color of _pixelsDrawn.get(pos)) {
+  for (const pos of _drawnPixels.keys()) {
+    for (const color of _drawnPixels.get(pos)) {
       push();
       // let gray = color(255, 255, 255);
       // stroke(gray.setAlpha(128));
@@ -549,15 +565,65 @@ function drawCamera() {
   // }
 }
 
-function screenshot() {
+function exportDesign() {
   let date = new Date().toJSON();
   saveCanvas("Penguin_Island_design_" + date, "png");
 
   let textArea = document.getElementById("design-output");
   textArea.readonly = false;
-  let designStr = JSON.stringify(_pixelsDrawn);
-  console.log(_pixelsDrawn);
+  let designStr = designToString();
+  console.log(designStr);
   textArea.textContent = designStr;
+  navigator.clipboard.writeText(designStr);
+  
+  let writer = createWriter(PATH_DESIGNS + "Penguin_Island_" + date + '.txt');
+  // write 'Hello world!'' to the file
+  writer.write(designStr);
+  // close the PrintWriter and save the file
+  writer.close();
+  
+  alert("saved ur design to file!");
+}
+
+/**
+ * pos0=color1/color2&pos1=color1/color2
+ */
+function designToString() {
+  let designString = ""
+  for (const pos of _drawnPixels.keys()) {
+    designString += JSON.stringify(pos) + "=";
+    for (const color of _drawnPixels.get(pos)) {
+      designString += color.toString() + "/";
+    }
+    designString += "&";
+  } 
+  return designString;
+}
+
+/**
+ * Given a design string, imports its contents into the 
+ * current canvas. 
+ * !!!!WARNING!!!! clears current canvas.
+ * @param {String} designString 
+ */
+function importDesignString(designString) {
+  _drawnPixels.clear();
+  let positions = designString.split("&");
+  // console.log(positions);
+  for (let i = 0; i < positions.length - 1; i++) {
+    let currPositionSplit = positions[i].split("=");
+    // console.log(currPositionSplit);
+    let co = JSON.parse(currPositionSplit[0]);
+    let curVect = createVector(co.x, co.y, co.z);
+    // console.log("curVect: " + curVect);
+    _drawnPixels.set(curVect, []);
+    let posColors = currPositionSplit[1].split("/");
+    for (let j = 0; j < posColors.length - 1; j++) {
+      let cc = color(posColors[j]);
+      _drawnPixels.get(curVect).push(cc);
+      // console.log("currcolor: "+cc);
+    }
+  }
 }
 
 function keyPressed() {
