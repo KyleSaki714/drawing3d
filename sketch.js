@@ -56,15 +56,17 @@ let _penguin1_startPos;
 let pHtmlMsg;
 let serialOptions = { baudRate: 115200  };
 let serial;
-let serialVal_a0 = 0.0; // values from pins on web serial.
-let serialVal_a1 = 0.0;
-let serialVal_a2 = 0.0;
-let serialVal_a3 = 0.0; // slider
-let lastSerialVal_a3 = 0.0;
-let serialVal_a4 = 0.0;
-let lastSerialVal_a4 = 0.0;
-let button0value = 0;
-let button1value = 0;
+// let serialVal_a0 = 0.0; // values from pins on web serial.
+let serial_joy_x = 0.0;
+let serial_joy_y = 0.0;
+let serial_slider = 0.0; // slider
+let lastserial_slider = 0.0;
+let serial_trimpot = 0.0;
+let lastserial_trimpot = 0.0; // trimpot
+let button0value = 0; // draw
+let button1value = 0; // delete
+let button2value = 0; // top
+let button3value = 0; // bottom
 
 function preload() {
   myFont = loadFont("resources/Litebulb 8-bit.ttf");
@@ -96,6 +98,9 @@ function setup() {
   let saveButton = document.getElementById("save-btn");
   saveButton.addEventListener("click", exportDesign);
   
+  let clearButton = document.getElementById("clear-btn");
+  clearButton.addEventListener("click", clearCanvas);
+
   // _lastCameraPos = createVector(0, 0, 800);
   // CAMERA_RESET = createVector(
   //   719.1626069130599,
@@ -244,13 +249,13 @@ function draw() {
   drawPenguins();
   
   let currBrushPos;
-  if (MOVE_BRUSH_MODE) {
-    // move the brush with the IRL axis (serial, a0, a1, a2) 
-    currBrushPos = snapToGrid(moveGridCursor());
-  } else {
+  // if (MOVE_BRUSH_MODE) {
+  //   // move the brush with the IRL axis (serial, a0, a1, a2) 
+  //   // currBrushPos = snapToGrid(moveGridCursor());
+  // } else {
     // move the brush with the camera
     currBrushPos = snapToGrid(_lastCameraPoint);
-  }
+  // }
   
   // console.log("currBrushPos: " + currBrushPos);
   
@@ -273,8 +278,8 @@ function draw() {
   }
   
   drawPixels();
-  lastSerialVal_a3 = serialVal_a3;
-  lastSerialVal_a4 = serialVal_a4;
+  lastserial_slider = serial_slider;
+  lastserial_trimpot = serial_trimpot;
   // if (!currBrushPos.equals(_lastBrushPos)) {
   //   _lastBrushPos = currBrushPos;
   //   console.log("bruh pos changed");
@@ -350,18 +355,18 @@ function snapToGrid(currentPos) {
   return createVector(snapx, snapy, snapz);
 }
 
-/**
- * Uses read in Serial values to create the position of the brush.
- * @returns {p5.Vector}
- */
-function moveGridCursor() {
-  let xpos = serialVal_a0 * CELL_SIZE * GRID_SIZE;
-  let zpos = serialVal_a1 * CELL_SIZE * GRID_SIZE;
-  let ypos = serialVal_a2 * -CELL_SIZE * GRID_SIZE; // NEGATIVE CAUSE WEB
-  let res = createVector(xpos, ypos, zpos);
-  // console.log("moveGridCursor: " + res);
-  return res;
-}
+// /**
+//  * Uses read in Serial values to create the position of the brush.
+//  * @returns {p5.Vector}
+//  */
+// function moveGridCursor() {
+//   let xpos = serialVal_a0 * CELL_SIZE * GRID_SIZE;
+//   let zpos = serial_joy_x * CELL_SIZE * GRID_SIZE;
+//   let ypos = serial_joy_y * -CELL_SIZE * GRID_SIZE; // NEGATIVE CAUSE WEB
+//   let res = createVector(xpos, ypos, zpos);
+//   // console.log("moveGridCursor: " + res);
+//   return res;
+// }
 
 function drawGrid() {
   stroke(0, 0, 0, 20);
@@ -475,14 +480,14 @@ function setPixelColor(color) {
 }
 
 function checkChangePixelColorSerial() {
-  if (serialVal_a3 === lastSerialVal_a3) {
+  if (serial_slider === lastserial_slider) {
     return;
   }
   
-  if (serialVal_a3 >= 1) {
-    serialVal_a3 = 0.99;
+  if (serial_slider >= 1) {
+    serial_slider = 0.99;
   }
-  _clrIndex = Math.trunc(serialVal_a3 * _myColors.length);
+  _clrIndex = Math.trunc(serial_slider * _myColors.length);
   let newClr = "#" + _myColors[_clrIndex].substring(2, 9);
   if (newClr != _currentFillColor) {
     setPixelColor(newClr);
@@ -540,6 +545,10 @@ function removePixel(pos) {
   }
 }
 
+function clearCanvas() {
+  _drawnPixels.clear();
+}
+
 /**
  * Using _drawnPixels, draws all the pixels added to the canvas.
  */
@@ -573,6 +582,29 @@ function drawCamera() {
   // text("camerapoint", 0, 0);
   pop();
 
+  // JOYSTICK
+  let joyx_normneg = (serial_joy_x * 2.0) - 1.0;
+  let joyy_normneg = (serial_joy_y * 2.0) - 1.0;
+  if (joyx_normneg) {
+    _lastCameraPos.x += joyx_normneg*CAMERA_NUDGE_SPEED;
+    _lastCameraPoint.x += joyx_normneg*CAMERA_NUDGE_SPEED; 
+  }
+  if (joyy_normneg && abs(joyy_normneg) > 0.1) {
+    _lastCameraPos.z -= joyy_normneg*CAMERA_NUDGE_SPEED;
+    _lastCameraPoint.z -= joyy_normneg*CAMERA_NUDGE_SPEED; 
+  }
+
+  // JOYSTICK BUTTONS
+  if (button2value) {
+    _lastCameraPos.y -= CAMERA_NUDGE_SPEED;
+    _lastCameraPoint.y -= CAMERA_NUDGE_SPEED; 
+  }
+  if (button3value) {
+    _lastCameraPos.y += CAMERA_NUDGE_SPEED;
+    _lastCameraPoint.y += CAMERA_NUDGE_SPEED; 
+  }
+
+  // KEYBOARD
   if (keyIsDown(RIGHT_ARROW)) {
     // console.log("move camera right");
     _lastCameraPos.x += CAMERA_NUDGE_SPEED;
@@ -606,7 +638,7 @@ function drawCamera() {
 
   let mouseVelx = mouseX - pmouseX;
   let mouseVely = mouseY - pmouseY;
-  let a4delta = serialVal_a4 - lastSerialVal_a4;
+  let a4delta = serial_trimpot - lastserial_trimpot;
   // console.log(mouseVelx);
   // console.log(a4delta * 100.0);
   if (mouseIsPressed && (mouseVelx !== 0 || mouseVely !== 0)) {
@@ -785,28 +817,33 @@ function onSerialDataReceived(eventSender, newData) {
     
   // }
 
-  serialVal_a0 = parseFloat(pinData[0]);
-  serialVal_a1 = parseFloat(pinData[1]);
-  serialVal_a2 = parseFloat(pinData[2]);
-  serialVal_a3 = parseFloat(pinData[3]);
+  // serialVal_a0 = parseFloat(pinData[0]);
+  serial_joy_x = parseFloat(pinData[0]);
+  serial_joy_y = parseFloat(pinData[1]);
+  serial_slider = parseFloat(pinData[2]);
+  serial_trimpot = parseFloat(pinData[3]);
   button0value = parseInt(pinData[4]);
-  serialVal_a4 = parseFloat(pinData[5]);
-  button1value = parseInt(pinData[6]);
+  button1value = parseInt(pinData[5]);
+  button2value = parseInt(pinData[6]);
+  button3value = parseInt(pinData[7]);
+  
 
   // let a0split = pinData[0].split(":");
   // serialVal_a0 = parseFloat(a0split[1]);
   // let a1split = pinData[1].split(":");
-  // serialVal_a1 = parseFloat(a1split[1]);
+  // serial_joy_x = parseFloat(a1split[1]);
   // let a2split = pinData[2].split(":");
-  // serialVal_a2 = parseFloat(a2split[1]);
+  // serial_joy_y = parseFloat(a2split[1]);
 
-  console.log("serialVal_a0: " + serialVal_a0 +
-   " serialVal_a1: " + serialVal_a1 +
-   " serialVal_a2: " + serialVal_a2 +
-   " serialVal_a3: " + serialVal_a3 +
+  console.log(//"serialVal_a0: " + serialVal_a0 +
+   " serial_joy_x: " + serial_joy_x +
+   " serial_joy_y: " + serial_joy_y +
+   " serial_slider: " + serial_slider +
+   " serial_trimpot: " + serial_trimpot +
    " button0value: " + button0value +
-   " serialVal_a4: " + serialVal_a4 +
-   " button1value: " + button1value
+   " button1value: " + button1value +
+   " button2value: " + button2value +
+   " button3value: " + button3value
   );
 }
 
