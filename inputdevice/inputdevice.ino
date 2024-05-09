@@ -6,6 +6,7 @@ const int YPOTPIN = A2;
 const int SLIDERPOTPIN = A3;
 const int TRIMPOTPIN = A4;
 const int BUTTON0PIN = 4;
+const int BUTTON1PIN = 5;
 
 int _lastButtonPress = LOW;
 
@@ -13,6 +14,7 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
   pinMode(BUTTON0PIN, INPUT_PULLUP);
+  pinMode(BUTTON1PIN, INPUT_PULLUP);
 }
 
 void loop() {
@@ -50,7 +52,16 @@ void loop() {
     Serial.print(LOW);
   }
   Serial.print(",");
-  Serial.println(trimpotval, 4);
+  Serial.print(trimpotval, 4);
+  Serial.print(",");
+
+  int btn1val = digitalRead(BUTTON1PIN);
+  // btnval != _lastButtonPress && 
+  if (btn1val == LOW) {
+    Serial.println(HIGH);
+  } else {
+    Serial.println(LOW);
+  }
 
   _lastButtonPress = btnval;
 

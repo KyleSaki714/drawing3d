@@ -6,7 +6,7 @@
  */
 
 let DRAW_GRID_FULL = false; // debug
-let MOVE_BRUSH_MODE = false; // if true, using real axis to move. otherwise, using arrow keys to move pixel position.
+let MOVE_BRUSH_MODE = true; // if true, using real axis to move. otherwise, using arrow keys to move pixel position.
 const BACKGROUND_COLOR = "#D0EAF2";
 const PATH_DESIGNS = "designs/";
 
@@ -36,7 +36,7 @@ let _drawnPixels; // Map (p5.Vector => p5.Color[])
 
 let _penguin_idle;
 let _penguin1_pos;
-let _penguin1_flip = false;
+let _penguin1_flip = 1;
 let _penguin1_startPos;
 
 // This is a basic web serial template for p5.js using the Makeability Lab
@@ -64,6 +64,7 @@ let lastSerialVal_a3 = 0.0;
 let serialVal_a4 = 0.0;
 let lastSerialVal_a4 = 0.0;
 let button0value = 0;
+let button1value = 0;
 
 function preload() {
   myFont = loadFont("resources/Litebulb 8-bit.ttf");
@@ -183,7 +184,7 @@ function drawAxisNames() {
 function rotateCameraAroundPointY(theta, point) {
   let t = radians(theta);
   let cameraPos = _lastCameraPos;
-  console.log(t);
+  // console.log(t);
   // console.log(cameraPos);
   let x = ((cameraPos.x - point.x) * cos(t)) - ((cameraPos.z - point.z) * sin(t)) + point.x;
   let z = ((cameraPos.x - point.x) * sin(t)) + ((cameraPos.z - point.z) * cos(t)) + point.y;
@@ -267,7 +268,7 @@ function draw() {
     addPixel(currBrushPos);
   }
   
-  if (keyIsDown(65)) {
+  if (keyIsDown(65) || button1value) {
     removePixel(currBrushPos);
   }
   
@@ -293,19 +294,24 @@ function drawPenguins() {
     texture(_penguin_idle);
     push();
     translate(_penguin1_pos);
-    if (_penguin1_flip) {
+    if (_penguin1_flip === -1) {
       rotateY(radians(180));
     }
     // rotate(rotatePointAroundPointY(0.1, createVector(0,0,0), _lastCameraPos));
     plane(CELL_SIZE, CELL_SIZE);
-    _penguin1_pos.x = _penguin1_pos.x + 1;
+    _penguin1_pos.x = _penguin1_pos.x + _penguin1_flip;
+    // console.log(_penguin1_pos.x);
+    // console.log(_penguin1_startPos.x);
     
-    let dist = _penguin1_pos.x - _penguin1_startPos.x;
-    console.log(_penguin1_pos.x);
-    console.log(_penguin1_startPos.x);
-    if (dist > (CELL_SIZE * 4)) {
+    let dist = abs(_penguin1_pos.x - _penguin1_startPos.x);
+    // console.log(dist);
+    if (_penguin1_pos.x > (CELL_SIZE * 2) + 320) {
       _penguin1_startPos = _penguin1_pos;
-      _penguin1_flip = !_penguin1_flip;
+      _penguin1_flip = -1;
+    } 
+    else if (_penguin1_pos.x < 319) {
+      _penguin1_startPos = _penguin1_pos;
+      _penguin1_flip = 1;
     }
     pop()
     
@@ -785,6 +791,7 @@ function onSerialDataReceived(eventSender, newData) {
   serialVal_a3 = parseFloat(pinData[3]);
   button0value = parseInt(pinData[4]);
   serialVal_a4 = parseFloat(pinData[5]);
+  button1value = parseInt(pinData[6]);
 
   // let a0split = pinData[0].split(":");
   // serialVal_a0 = parseFloat(a0split[1]);
@@ -793,13 +800,14 @@ function onSerialDataReceived(eventSender, newData) {
   // let a2split = pinData[2].split(":");
   // serialVal_a2 = parseFloat(a2split[1]);
 
-  // console.log("serialVal_a0: " + serialVal_a0 +
-  //  " serialVal_a1: " + serialVal_a1 +
-  //  " serialVal_a2: " + serialVal_a2 +
-  //  " serialVal_a3: " + serialVal_a3 +
-  //  " button0value: " + button0value +
-  //  " serialVal_a4: " + serialVal_a4
-  // );
+  console.log("serialVal_a0: " + serialVal_a0 +
+   " serialVal_a1: " + serialVal_a1 +
+   " serialVal_a2: " + serialVal_a2 +
+   " serialVal_a3: " + serialVal_a3 +
+   " button0value: " + button0value +
+   " serialVal_a4: " + serialVal_a4 +
+   " button1value: " + button1value
+  );
 }
 
 /**
