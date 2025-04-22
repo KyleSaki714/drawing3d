@@ -291,6 +291,20 @@ function draw() {
   // box(100, 90);
   // _boxx = (_boxx + 1) % 360 ;
   // pop();
+
+  push();
+  fill("white");
+  translate(256, -69, 256);
+  // translate(0, -69, 0);
+  // let angle = frameCount * 0.01;
+  let drawPlaneToCamVec = p5.Vector.sub(_lastCameraPos, CAMERA_ORIGIN);
+  let newCamPosInPlaneCoordSystem = p5.Vector.sub(_lastCameraPos, CAMERA_ORIGIN)
+  let angle = atan2(newCamPosInPlaneCoordSystem.y, newCamPosInPlaneCoordSystem.x);
+  console.log(angle);
+  rotateY(angle);
+  scale(5, 5, 5);
+  plane();
+  pop();
   
 }
 
