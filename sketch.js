@@ -11,7 +11,7 @@ const BACKGROUND_COLOR = "#D0EAF2";
 const PATH_DESIGNS = "designs/";
 
 const GRID_SIZE = 16; // how many cells there are, CELL_SIZE ^ 3.
-const CELL_SIZE = 32; // how big pixels are, CELL_SIZE x CELL_SIZE x CELL_SIZE. 
+const CELL_SIZE = 32; // how big voxels are, CELL_SIZE x CELL_SIZE x CELL_SIZE. 
 const CAMERA_NUDGE_SPEED = 6; // nudgin the camera with arrow keys
 let CAMERA_RESET; // assigned at setup, cant use const?
 let CAMERA_ORIGIN;
@@ -32,7 +32,7 @@ let _myColors; // colors available to draw in. read in on preload()
 let _preload_paletteText;
 let _preload_design;
 let _designs;
-let _drawnPixels; // Map (p5.Vector => p5.Color[])
+let _drawnVoxels; // Map (p5.Vector => p5.Color[])
 
 let _penguin_idle;
 let _penguin1_pos;
@@ -125,11 +125,11 @@ function setup() {
   _cameraIsPerspective = false;
   ortho(undefined, undefined, undefined, undefined, undefined, max(width, height) + 1000);
   _currentFillColor = color(0, 0, 0);
-  _drawnPixels = new Map();
+  _drawnVoxels = new Map();
   _firstPixelPlaced = false;
   console.log(_preload_design[0])
   importDesignString(_preload_design[0]);
-  console.log(_drawnPixels);
+  console.log(_drawnVoxels);
   console.log("loaded file");
   _penguin1_startPos = createVector(CELL_SIZE * 10, CELL_SIZE * -2.5, CELL_SIZE * 4);
   _penguin1_pos = createVector(CELL_SIZE * 10, CELL_SIZE * -2.5, CELL_SIZE * 4);
@@ -266,7 +266,7 @@ function draw() {
   drawGridCursor(currBrushPos);  
 
   // pointLight(255, 255, 255, mouseX, mouseY, 0);
-  checkChangePixelColorSerial();
+  checkChangePixelColorSerial(currBrushPos);
   
   // "z" for placing a pixel
   if (keyIsDown(90) || button0value) {
@@ -277,7 +277,7 @@ function draw() {
     removePixel(currBrushPos);
   }
   
-  drawPixels();
+  drawVoxels();
   lastserial_slider = serial_slider;
   lastserial_trimpot = serial_trimpot;
   // if (!currBrushPos.equals(_lastBrushPos)) {
@@ -479,10 +479,47 @@ function setPixelColor(color) {
   fill(color);
 }
 
-function checkChangePixelColorSerial() {
-  if (serial_slider === lastserial_slider) {
+// function drawColorPreview(currBrushPos) {
+//   console.log("f")
+//   push()
+//   fill("blue");
+//   // let blockPos = createVector(currBrushPos.x, currBrushPos.y, currBrushPos.z);
+//   // blockPos.x = blockPos.x + (CELL_SIZE);
+
+//   translate(currBrushPos);
+
+//   box(CELL_SIZE, CELL_SIZE);
+
+//   pop()
+
+
+//   // // let serial_slider_normneg = (serial_slider * 2.0) - 1.0;
+//   // for (let i = 0; i < _myColors.length; i++) {
+
+//   //   push();
+//   //   let curColor = _myColors[i];
+//   //   // let gray = color(255, 255, 255);
+//   //   // stroke(gray.setAlpha(128));
+//   //   stroke(255);
+//   //   // stroke(0, 0, 0, 15);
+//   //   // specularMaterial(red(color), green(color), blue(color));
+//   //   fill(curColor);
+//   //   // CELL SIZE OFFSET
+//   //   let blockPos = createVector(currBrushPos);
+//   //   blockPos.x = blockPos.x + (serial_slider * _myColors.length * CELL_SIZE);
+//   //   translate(snapToGrid(blockPos));
+//   //   translate(CELL_SIZE / 2, CELL_SIZE / 2, CELL_SIZE / 2);
+//   //   box(CELL_SIZE, CELL_SIZE);
+//   //   pop();
+//   // }
+// }
+
+function checkChangePixelColorSerial(currBrushPos) {
+  if (serial_slider === lastserial_slider && serial_slider - lastserial_slider < 0.2) {
     return;
   }
+
+  // drawColorPreview(currBrushPos);
   
   if (serial_slider >= 1) {
     serial_slider = 0.99;
@@ -518,19 +555,19 @@ function addPixel(pos) {
   // also check if new position is different
   // (only draw when new position)
   if (pos.equals(_lastBrushPos)) {
-    console.log("same pos");
+    // console.log("same pos");
     return;
   }
   
-  // check if there is already a coordinate in _drawnPixels
-  let possibleColor = _drawnPixels.get(pos);
+  // check if there is already a coordinate in _drawnVoxels
+  let possibleColor = _drawnVoxels.get(pos);
   
   // if not, set a new position entry with a new color array
   if (possibleColor === undefined) {
-    _drawnPixels.set(pos, []);
+    _drawnVoxels.set(pos, []);
     // add the color to the array
-    _drawnPixels.get(pos).push(_currentFillColor);
-    console.log("added color");
+    _drawnVoxels.get(pos).push(_currentFillColor);
+    console.log("added voxel");
   }
   
   _lastBrushPos = pos;
@@ -538,23 +575,23 @@ function addPixel(pos) {
 
 
 function removePixel(pos) {
-  for (const canvasPos of _drawnPixels.keys()) {
+  for (const canvasPos of _drawnVoxels.keys()) {
     if (pos.equals(canvasPos)) {
-      _drawnPixels.delete(canvasPos);
+      _drawnVoxels.delete(canvasPos);
     }
   }
 }
 
 function clearCanvas() {
-  _drawnPixels.clear();
+  _drawnVoxels.clear();
 }
 
 /**
- * Using _drawnPixels, draws all the pixels added to the canvas.
+ * Using _drawnVoxels, draws all the voxels added to the canvas.
  */
-function drawPixels() {
-  for (const pos of _drawnPixels.keys()) {
-    for (const color of _drawnPixels.get(pos)) {
+function drawVoxels() {
+  for (const pos of _drawnVoxels.keys()) {
+    for (const color of _drawnVoxels.get(pos)) {
       push();
       // let gray = color(255, 255, 255);
       // stroke(gray.setAlpha(128));
@@ -585,23 +622,29 @@ function drawCamera() {
   // JOYSTICK
   let joyx_normneg = (serial_joy_x * 2.0) - 1.0;
   let joyy_normneg = (serial_joy_y * 2.0) - 1.0;
-  if (joyx_normneg) {
-    _lastCameraPos.x += joyx_normneg*CAMERA_NUDGE_SPEED;
-    _lastCameraPoint.x += joyx_normneg*CAMERA_NUDGE_SPEED; 
-  }
-  if (joyy_normneg && abs(joyy_normneg) > 0.1) {
-    _lastCameraPos.z -= joyy_normneg*CAMERA_NUDGE_SPEED;
-    _lastCameraPoint.z -= joyy_normneg*CAMERA_NUDGE_SPEED; 
-  }
+  // console.log(joyx_normneg + " " + joyy_normneg);
 
-  // JOYSTICK BUTTONS
-  if (button2value) {
-    _lastCameraPos.y -= CAMERA_NUDGE_SPEED;
-    _lastCameraPoint.y -= CAMERA_NUDGE_SPEED; 
-  }
-  if (button3value) {
-    _lastCameraPos.y += CAMERA_NUDGE_SPEED;
-    _lastCameraPoint.y += CAMERA_NUDGE_SPEED; 
+  let JOYSTICK_INACTIVE = joyx_normneg === -1 && joyy_normneg === -1;
+
+  if (!JOYSTICK_INACTIVE) {
+    if (joyx_normneg) {
+      _lastCameraPos.x += joyx_normneg*CAMERA_NUDGE_SPEED;
+      _lastCameraPoint.x += joyx_normneg*CAMERA_NUDGE_SPEED; 
+    }
+    if (joyy_normneg && abs(joyy_normneg) > 0.1) {
+      _lastCameraPos.z -= joyy_normneg*CAMERA_NUDGE_SPEED;
+      _lastCameraPoint.z -= joyy_normneg*CAMERA_NUDGE_SPEED; 
+    }
+  
+    // JOYSTICK BUTTONS
+    if (button2value) {
+      _lastCameraPos.y -= CAMERA_NUDGE_SPEED;
+      _lastCameraPoint.y -= CAMERA_NUDGE_SPEED; 
+    }
+    if (button3value) {
+      _lastCameraPos.y += CAMERA_NUDGE_SPEED;
+      _lastCameraPoint.y += CAMERA_NUDGE_SPEED; 
+    }
   }
 
   // KEYBOARD
@@ -694,9 +737,9 @@ function exportDesign() {
  */
 function designToString() {
   let designString = ""
-  for (const pos of _drawnPixels.keys()) {
+  for (const pos of _drawnVoxels.keys()) {
     designString += JSON.stringify(pos) + "=";
-    for (const color of _drawnPixels.get(pos)) {
+    for (const color of _drawnVoxels.get(pos)) {
       designString += color.toString() + "/";
     }
     designString += "&";
@@ -711,7 +754,7 @@ function designToString() {
  * @param {String} designString 
  */
 function importDesignString(designString) {
-  _drawnPixels.clear();
+  _drawnVoxels.clear();
   let positions = designString.split("&");
   // console.log(positions);
   for (let i = 0; i < positions.length - 1; i++) {
@@ -720,11 +763,11 @@ function importDesignString(designString) {
     let co = JSON.parse(currPositionSplit[0]);
     let curVect = createVector(co.x, co.y, co.z);
     // console.log("curVect: " + curVect);
-    _drawnPixels.set(curVect, []);
+    _drawnVoxels.set(curVect, []);
     let posColors = currPositionSplit[1].split("/");
     for (let j = 0; j < posColors.length - 1; j++) {
       let cc = color(posColors[j]);
-      _drawnPixels.get(curVect).push(cc);
+      _drawnVoxels.get(curVect).push(cc);
       // console.log("currcolor: "+cc);
     }
   }
@@ -758,9 +801,9 @@ function keyPressed() {
   }
 
   // "c" for log the last camera position
-  if (keyCode === 67) {
-    console.log(_lastCameraPos);
-    console.log(_lastCameraPoint);
+  if (keyCode === 76) {
+    console.log("last camera position: " + _lastCameraPos);
+    console.log("last camera point: " + _lastCameraPoint);
   }
   // "r" for reset camera
   if (keyCode === 82) {
