@@ -9,6 +9,7 @@ let DRAW_GRID_FULL = false; // debug
 let MOVE_BRUSH_MODE = true; // if true, using real axis to move. otherwise, using arrow keys to move pixel position.
 const BACKGROUND_COLOR = "#D0EAF2";
 const PATH_DESIGNS = "designs/";
+let SERIAL_CONNECTED = false; // true when onSerialConnectionOpened is called.
 
 const GRID_SIZE = 16; // how many cells there are, CELL_SIZE ^ 3.
 const CELL_SIZE = 32; // how big voxels are, CELL_SIZE x CELL_SIZE x CELL_SIZE. 
@@ -300,7 +301,7 @@ function draw() {
   let drawPlaneToCamVec = p5.Vector.sub(_lastCameraPos, CAMERA_ORIGIN);
   let newCamPosInPlaneCoordSystem = p5.Vector.sub(_lastCameraPos, CAMERA_ORIGIN)
   let angle = atan2(newCamPosInPlaneCoordSystem.y, newCamPosInPlaneCoordSystem.x);
-  console.log(angle);
+
   rotateY(angle);
   scale(5, 5, 5);
   plane();
@@ -641,11 +642,11 @@ function drawCamera() {
   let JOYSTICK_INACTIVE = joyx_normneg === -1 && joyy_normneg === -1;
 
   if (!JOYSTICK_INACTIVE) {
-    if (joyx_normneg) {
+    if (SERIAL_CONNECTED && joyx_normneg) {
       _lastCameraPos.x += joyx_normneg*CAMERA_NUDGE_SPEED;
       _lastCameraPoint.x += joyx_normneg*CAMERA_NUDGE_SPEED; 
     }
-    if (joyy_normneg && abs(joyy_normneg) > 0.1) {
+    if (SERIAL_CONNECTED && joyy_normneg && abs(joyy_normneg) > 0.1) {
       _lastCameraPos.z -= joyy_normneg*CAMERA_NUDGE_SPEED;
       _lastCameraPoint.z -= joyy_normneg*CAMERA_NUDGE_SPEED; 
     }
@@ -847,6 +848,7 @@ function onSerialErrorOccurred(eventSender, error) {
 function onSerialConnectionOpened(eventSender) {
   console.log("onSerialConnectionOpened");
   pHtmlMsg.html("Serial connection opened successfully");
+  SERIAL_CONNECTED = true;
 }
 
 /**
