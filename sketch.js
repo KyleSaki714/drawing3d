@@ -304,9 +304,27 @@ function draw() {
   // let angle = frameCount * 0.01;
   // let drawPlaneToCamVec = p5.Vector.sub(_lastCameraPos, CAMERA_ORIGIN);
   // let newCamPosInPlaneCoordSystem = p5.Vector.sub(_lastCameraPos, CAMERA_ORIGIN)
+  let newCamPosInPlaneCoordSystem = createVector(_lastCameraPos.x - 256, _lastCameraPos.y + 256, _lastCameraPos.z + dpz)
   // let angle = atan2(newCamPosInPlaneCoordSystem.y, newCamPosInPlaneCoordSystem.x);
-
+  // console.log(newCamPosInPlaneCoordSystem.x, newCamPosInPlaneCoordSystem.y, newCamPosInPlaneCoordSystem.z);
+  let cameraAngleFromBrush = atan2(newCamPosInPlaneCoordSystem.z, newCamPosInPlaneCoordSystem.x);
   // rotateY(angle);
+  // console.log(cameraAngleFromBrush);
+  let sup;
+  if (cameraAngleFromBrush < 0 && cameraAngleFromBrush >= PI / 2) {
+    sup = 0;
+  } else if (cameraAngleFromBrush > PI / 2 && cameraAngleFromBrush <= PI ) {
+    sup = 1;
+  } else if (cameraAngleFromBrush > PI && cameraAngleFromBrush <= 3 * PI / 2) {
+    sup = 2;
+  } else if (cameraAngleFromBrush > 3 * PI / 2 && cameraAngleFromBrush <= 2 * PI) {
+    sup = 3;
+  } else {
+    sup = 0;
+  }
+
+  console.log(sup)
+
   let planesize = CELL_SIZE * GRID_SIZE;
   // scale(planesize, planesize, planesize);
   plane(planesize);
