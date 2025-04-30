@@ -128,8 +128,8 @@ function setup() {
   _currentFillColor = color(0, 0, 0);
   _drawnVoxels = new Map();
   _firstPixelPlaced = false;
-  console.log(_preload_design[0])
-  importDesignString(_preload_design[0]);
+  // console.log(_preload_design[0])
+  // importDesignString(_preload_design[0]);
   console.log(_drawnVoxels);
   console.log("loaded file");
   _penguin1_startPos = createVector(CELL_SIZE * 10, CELL_SIZE * -2.5, CELL_SIZE * 4);
@@ -294,17 +294,18 @@ function draw() {
   // pop();
 
   push();
-  fill("white");
-  translate(256, -69, 256);
+  fill(color(255, 255, 255, 255 * 0.3));
+  translate(256, -256, 256);
   // translate(0, -69, 0);
   // let angle = frameCount * 0.01;
-  let drawPlaneToCamVec = p5.Vector.sub(_lastCameraPos, CAMERA_ORIGIN);
-  let newCamPosInPlaneCoordSystem = p5.Vector.sub(_lastCameraPos, CAMERA_ORIGIN)
-  let angle = atan2(newCamPosInPlaneCoordSystem.y, newCamPosInPlaneCoordSystem.x);
+  // let drawPlaneToCamVec = p5.Vector.sub(_lastCameraPos, CAMERA_ORIGIN);
+  // let newCamPosInPlaneCoordSystem = p5.Vector.sub(_lastCameraPos, CAMERA_ORIGIN)
+  // let angle = atan2(newCamPosInPlaneCoordSystem.y, newCamPosInPlaneCoordSystem.x);
 
-  rotateY(angle);
-  scale(5, 5, 5);
-  plane();
+  // rotateY(angle);
+  let planesize = CELL_SIZE * GRID_SIZE;
+  // scale(planesize, planesize, planesize);
+  plane(planesize);
   pop();
   
 }
