@@ -23,6 +23,7 @@ let _curMouseRotate = 0; // current rotation along the y axis mapped to mouseX
 let _lastCameraPos; // 1st vector of camera(), the position in 3d space 
 let _lastCameraPoint; // 2nd vector of camera(), position camera is pointing at
 let _cameraIsPerspective; // default is false, perspective mode is true;
+let _drawPlaneZ = 0; // z position of the drawplane
 
 let _firstPixelPlaced;
 let _lastBrushPos;
@@ -295,7 +296,10 @@ function draw() {
 
   push();
   fill(color(255, 255, 255, 255 * 0.3));
-  translate(256, -256, 256);
+
+  let dpz = _drawPlaneZ + 256;
+
+  translate(256, -256, dpz);
   // translate(0, -69, 0);
   // let angle = frameCount * 0.01;
   // let drawPlaneToCamVec = p5.Vector.sub(_lastCameraPos, CAMERA_ORIGIN);
@@ -308,6 +312,11 @@ function draw() {
   plane(planesize);
   pop();
   
+}
+
+function mouseWheel(event) {
+  _drawPlaneZ += event.delta > 0 ? CELL_SIZE : -CELL_SIZE;
+  console.log(_drawPlaneZ)
 }
 
 function drawPenguins() {
